@@ -29,7 +29,7 @@ if __name__ == "__main__":
     username = "example"
     password = "examplepwd"
     topo = Topology(username, password)
-    topo.pull_all_mac_tables() # Writes to ./mac-address-tables
+    topo.pull_all_mac_tables()# Writes to ./mac-address-tables
     f = Filtering()
-    f.filtering_mac_tables()# Reads from ./mac-address-tables
+    f.get_filtered_mac_table()# Reads from ./mac-address-tables
 

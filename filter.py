@@ -22,6 +22,7 @@ class Filtering:
             self.table = json.loads(file.read())
             file.close()
 
+    # Step 1
     def filtering_mac_tables(self):
         for entry in self.table:
             mac = entry["mac"]
@@ -34,7 +35,8 @@ class Filtering:
                        "vlan": vlan}
                 self.noBridgeAggregation.append(add)
 
-    def get_stack_and_interface(self):
+    # Step 2
+    def resolve_stack_and_interface(self):
         for entry in self.noBridgeAggregation:
             mac = entry["mac"]
             interface_name = entry["interface"]
@@ -46,15 +48,18 @@ class Filtering:
                    "interface_name": interface_name,
                    "vlan": vlan,
                    "stack": stack,
-                   "interface_num": matches[2]}
+                   "interface_num": interface_num,
+                   "sort_helper": int(stack + interface_num)}
+            self.withStackAndInterface.append(add)
 
+    # Step 3
     def sort_by_interface(self):
-        for entry in self.withStackAndInterface:
-            mac = entry["mac"]
-            interface = entry["interface"]
-            vlan = entry["vlan"]
+        # solution found on GitHub... do not really know how sorted + lambda works (?!)
+        self.sortedByInterface = sorted(self.withStackAndInterface, key=lambda x: (x["sort_helper"]))
 
-
-f = Filtering("SW_A-Sued.txt")
-f.filtering_mac_tables()  # Reads from ./mac-address-tables
-f.get_stack_and_interface()  #
+    def get_filtered_mac_table(self):
+        # Calling all filtering and sorting functions
+        self.filtering_mac_tables()  # Reads from ./mac-address-tables
+        self.resolve_stack_and_interface()  #
+        self.sort_by_interface()
+        return self.sortedByInterface
