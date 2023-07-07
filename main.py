@@ -1,6 +1,7 @@
 import subprocess
 from topology import Topology
 
+
 def connection_test(switch_array):
     """
     Ping all Switches located in the array
@@ -24,5 +25,7 @@ def scan_for_hosts(ip_range):
 
 
 if __name__ == "__main__":
-    topo = Topology()
+    username = "example"
+    password = "examplepwd"
+    topo = Topology(username, password)
     topo.pull_mac_tables()
