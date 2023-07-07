@@ -1,5 +1,9 @@
 from netconf import Comware7
 
+'''
+Main Class where All the good Stuff Happens
+'''
+
 
 class Topology:
     def __init__(self, username, password):
@@ -27,7 +31,7 @@ class Topology:
             # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink, no BridgeAggregation filtering possible
         ]
 
-    def pull_mac_tables(self):
+    def pull_all_mac_tables(self):
         sw_dict = self.SWITCHES
         for switch in sw_dict:
             name = switch[0]

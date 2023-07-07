@@ -1,5 +1,6 @@
 import subprocess
 from topology import Topology
+from filter import Filtering
 
 
 def connection_test(switch_array):
@@ -28,4 +29,7 @@ if __name__ == "__main__":
     username = "example"
     password = "examplepwd"
     topo = Topology(username, password)
-    topo.pull_mac_tables()
+    topo.pull_all_mac_tables() # Writes to ./mac-address-tables
+    f = Filtering()
+    f.filtering_mac_tables()# Reads from ./mac-address-tables
+
