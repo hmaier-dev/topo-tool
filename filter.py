@@ -8,7 +8,7 @@ This class should filter all unnecessary entrys as well, as sort the useful ones
 
 
 class Filtering:
-    def __init__(self, file_name):
+    def __init__(self, switch):
         """
         Logic is processed in the order of the following lists
         """
@@ -16,20 +16,22 @@ class Filtering:
         self.withStackAndInterface = []
         self.sortedByInterface = []
 
-        self.table_name = os.path.join("./mac-address-tables", file_name)
+        self.switch_name = switch[0] + "-clean.json"
+        self.switch_ip = switch[1]
+
+        self.table_name = os.path.join("./mac-address-tables", self.switch_name)
         # Opening the desired file
         with open(self.table_name, "r") as file:
-            self.table = json.loads(file.read())
+            self.raw_mac_table = json.loads(file.read())
             file.close()
 
     # Step 1
     def filtering_mac_tables(self):
-        for entry in self.table:
+        for entry in self.raw_mac_table:
             mac = entry["mac"]
             interface = entry["interface"]
             vlan = entry["vlan"]
-
-            if interface != "Bridge-Aggregation1":
+            if not re.match("Bridge-Aggregation",interface):
                 add = {"mac": mac,
                        "interface": interface,
                        "vlan": vlan}
@@ -44,12 +46,14 @@ class Filtering:
             matches = re.findall(r'\d+', interface_name)
             stack = matches[0]
             interface_num = matches[2]
+
+            helper = stack + interface_num
             add = {"mac": mac,
                    "interface_name": interface_name,
                    "vlan": vlan,
                    "stack": stack,
                    "interface_num": interface_num,
-                   "sort_helper": int(stack + interface_num)}
+                   "sort_helper": int(helper)}
             self.withStackAndInterface.append(add)
 
     # Step 3
@@ -57,9 +61,16 @@ class Filtering:
         # solution found on GitHub... do not really know how sorted + lambda works (?!)
         self.sortedByInterface = sorted(self.withStackAndInterface, key=lambda x: (x["sort_helper"]))
 
+    def write_to_mac_directory(self):
+        name = self.switch_name
+        with open(f"./mac-address-tables/{name}", "w") as out:
+            out.write(str(self.sortedByInterface))
+            out.close()
+
     def get_filtered_mac_table(self):
         # Calling all filtering and sorting functions
         self.filtering_mac_tables()  # Reads from ./mac-address-tables
         self.resolve_stack_and_interface()  #
         self.sort_by_interface()
+        self.write_to_mac_directory()  # writes sortedByInterface Array
         return self.sortedByInterface
