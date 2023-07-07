@@ -1,3 +1,4 @@
+# Package: napalm-h3c-comware
 from napalm import get_network_driver
 
 
@@ -13,7 +14,6 @@ class Comware7:
         self.driver = driver
         # ret = driver.get_arp_table()
         # ret = driver.get_mac_address_table()
-
 
     def get_mac_table(self):
         return self.driver.get_mac_address_table()
