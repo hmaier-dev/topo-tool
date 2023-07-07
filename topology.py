@@ -27,8 +27,8 @@ class Topology:
     ]
 
     def pull_mac_tables(self):
-        dict = self.SWITCHES
-        for switch in dict:
+        sw_dict = self.SWITCHES
+        for switch in sw_dict:
             name = switch[0]
             ip = switch[1]
             # Connecting to the Comware via netconf
