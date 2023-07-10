@@ -7,12 +7,12 @@ Main Class where All the good Stuff Happens
 '''
 
 
-class Topology:
+class Discovery:
     def __init__(self, username, password):
         self.username = username
         self.password = password
 
-    def pull_all_mac_tables(self, switch):
+    def get_mac_table(self, switch):
         """
         Takes tuple with string: name and string: ip
         """

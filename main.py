@@ -1,6 +1,7 @@
 import subprocess
-from topology import Topology
+from discover import Discovery
 from filter import Filtering
+from web import Web
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),
@@ -47,14 +48,31 @@ def scan_for_hosts(ip_range):
     return subprocess.run(nmap_args)
 
 
-if __name__ == "__main__":
+"""
+Run functions for the classes
+"""
+
+
+def run_mac_discovery():
     username = input("Enter username:")
     password = input("Enter password:")
 
-    topo = Topology(username, password)
+    netconf = Discovery(username, password)
     for switch in SWITCHES:
-        topo.pull_all_mac_tables(switch)  # Writes to ./mac-address-tables Directory
+        netconf.get_mac_table(switch)  # Writes to ./mac-address-tables Directory
 
+
+def run_mac_table_filter():
     for switch in SWITCHES:
         f = Filtering(switch)
         f.get_filtered_mac_table()  # Reads from ./mac-address-tables
+
+
+def run_web_interface():
+    web = Web()
+
+
+if __name__ == "__main__":
+    # run_mac_discovery()
+    # run_mac_table_filter()
+    run_web_interface()
