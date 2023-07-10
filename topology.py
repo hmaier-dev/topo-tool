@@ -1,3 +1,5 @@
+import os.path
+
 from netconf import Comware7
 
 '''
@@ -11,6 +13,9 @@ class Topology:
         self.password = password
 
     def pull_all_mac_tables(self, switch):
+        """
+        Takes tuple with string: name and string: ip
+        """
         name = switch[0]
         ip = switch[1]
         # Connecting to the Comware via netconf
@@ -24,7 +29,9 @@ class Topology:
         netconf_output = netconf.get_mac_table()
         # Write mac-address-table to a file
         print(f"Formatting and writing to file...")
-        with open(f"./mac-address-tables/{name}-raw.json", "w") as out:
+        file = "RAW_" + name + ".json"
+        path = os.path.join("mac-address-tables", file)
+        with open(path, "w") as out:
             mac = str(netconf_output)
             # Formatting the output-string to be useful for json
             mac = mac.replace("\'", "\"")

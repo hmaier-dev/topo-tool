@@ -48,12 +48,12 @@ def scan_for_hosts(ip_range):
 
 
 if __name__ == "__main__":
-    # username = ""
-    # password = ""
+    username = input("Enter username:")
+    password = input("Enter password:")
 
-    # topo = Topology(username, password)
-    # for switch in SWITCHES:
-    #     topo.pull_all_mac_tables(switch)  # Writes to ./mac-address-tables Directory
+    topo = Topology(username, password)
+    for switch in SWITCHES:
+        topo.pull_all_mac_tables(switch)  # Writes to ./mac-address-tables Directory
 
     for switch in SWITCHES:
         f = Filtering(switch)

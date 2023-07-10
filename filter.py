@@ -16,61 +16,51 @@ class Filtering:
         self.withStackAndInterface = []
         self.sortedByInterface = []
 
-        self.switch_name = switch[0] + "-clean.json"
-        self.switch_ip = switch[1]
+        self.raw_file_name = "RAW_" + switch[0] + ".json"
+        self.clean_file_name = "CLEAN_" + switch[0] + ".json"
+        self.raw_file_ip = switch[1]
 
-        self.table_name = os.path.join("./mac-address-tables", self.switch_name)
+        table_name = os.path.join("mac-address-tables", self.raw_file_name)
         # Opening the desired file
-        with open(self.table_name, "r") as file:
+        with open(table_name, "r") as file:
             self.raw_mac_table = json.loads(file.read())
             file.close()
 
-    # Step 1
-    def filtering_mac_tables(self):
-        for entry in self.raw_mac_table:
-            mac = entry["mac"]
-            interface = entry["interface"]
-            vlan = entry["vlan"]
-            if not re.match("Bridge-Aggregation",interface):
-                add = {"mac": mac,
-                       "interface": interface,
-                       "vlan": vlan}
-                self.noBridgeAggregation.append(add)
-
-    # Step 2
-    def resolve_stack_and_interface(self):
-        for entry in self.noBridgeAggregation:
+    def cleaning_mac_table(self):
+        table = self.raw_mac_table
+        tmp_list = []
+        for entry in table:
             mac = entry["mac"]
             interface_name = entry["interface"]
             vlan = entry["vlan"]
-            matches = re.findall(r'\d+', interface_name)
-            stack = matches[0]
-            interface_num = matches[2]
+            # Step 1
+            # Drop all non-local mac-addresses
+            if not re.match("Bridge-Aggregation", interface_name):
+                # Step 2
+                # Resolving num of stack and interface
+                matches = re.findall(r'\d+', interface_name)
+                sort_helper = matches[0] + matches[2]  # combine two strings
+                add = {"mac": mac,
+                       "interface": interface_name,
+                       "vlan": vlan,
+                       "stack_num": matches[0],
+                       "interface_num": matches[2],
+                       "sort_helper": int(sort_helper)}
+                # Step 3
+                # Adding the new entry to a temporary list
+                tmp_list.append(add)
+            # Step 4
+            # returning the list sorted by the sort_helper key
+            return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
-            helper = stack + interface_num
-            add = {"mac": mac,
-                   "interface_name": interface_name,
-                   "vlan": vlan,
-                   "stack": stack,
-                   "interface_num": interface_num,
-                   "sort_helper": int(helper)}
-            self.withStackAndInterface.append(add)
-
-    # Step 3
-    def sort_by_interface(self):
-        # solution found on GitHub... do not really know how sorted + lambda works (?!)
-        self.sortedByInterface = sorted(self.withStackAndInterface, key=lambda x: (x["sort_helper"]))
-
-    def write_to_mac_directory(self):
-        name = self.switch_name
-        with open(f"./mac-address-tables/{name}", "w") as out:
-            out.write(str(self.sortedByInterface))
+    def write_to_mac_directory(self, mac_table):
+        path = os.path.join("mac-address-tables", self.clean_file_name)
+        with open(path, "w") as out:
+            out.write(str(mac_table))
             out.close()
 
     def get_filtered_mac_table(self):
         # Calling all filtering and sorting functions
-        self.filtering_mac_tables()  # Reads from ./mac-address-tables
-        self.resolve_stack_and_interface()  #
-        self.sort_by_interface()
-        self.write_to_mac_directory()  # writes sortedByInterface Array
-        return self.sortedByInterface
+        clean = self.cleaning_mac_table()
+        self.write_to_mac_directory(clean)  # Writes clean table
+        return clean
