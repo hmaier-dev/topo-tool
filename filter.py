@@ -20,13 +20,13 @@ class Filtering:
         self.clean_file_name = "CLEAN_" + switch[0] + ".json"
         self.raw_file_ip = switch[1]
 
-        table_name = os.path.join("mac-address-tables", self.raw_file_name)
+        table_name = os.path.join("switch-tables", self.raw_file_name)
         # Opening the desired file
         with open(table_name, "r") as file:
             self.raw_mac_table = json.loads(file.read())
             file.close()
 
-    def cleaning_mac_table(self):
+    def cleaning_mac_table(self, regex_filter="Bridge-Aggregation"):
         table = self.raw_mac_table
         tmp_list = []
         for entry in table:
@@ -35,7 +35,7 @@ class Filtering:
             vlan = entry["vlan"]
             # Step 1
             # Drop all non-local mac-addresses
-            if not re.match("Bridge-Aggregation", interface_name):
+            if not re.match(regex_filter, interface_name):
                 # Step 2
                 # Resolving num of stack and interface
                 matches = re.findall(r'\d+', interface_name)
@@ -54,7 +54,7 @@ class Filtering:
             return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
     def write_to_mac_directory(self, mac_table):
-        path = os.path.join("mac-address-tables", self.clean_file_name)
+        path = os.path.join("switch-tables", self.clean_file_name)
         with open(path, "w") as out:
             out.write(str(mac_table))
             out.close()

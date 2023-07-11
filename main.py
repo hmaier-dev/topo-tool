@@ -1,7 +1,15 @@
+import os.path
 import subprocess
-from discover import Discovery
-from filter import Filtering
-from web import Web
+import requests
+import re
+from requests import packages
+from requests.auth import HTTPBasicAuth
+import xml.etree.ElementTree as ET
+
+
+import cred  # create a cred.py with username = <user> and password = <password>
+from discover import Discovery  # Connection to HP Switches
+from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),
@@ -59,21 +67,54 @@ def run_mac_discovery():
 
     netconf = Discovery(username, password)
     for switch in SWITCHES:
-        netconf.get_mac_table(switch)  # Writes to ./mac-address-tables Directory
+        netconf.get_mac_table(switch)  # Writes to ./switch-tables Directory
 
 
 def run_mac_table_filter():
     for switch in SWITCHES:
         f = Filtering(switch)
-        f.get_filtered_mac_table()  # Reads from ./mac-address-tables
+        f.get_filtered_mac_table()  # Reads from ./switch-tables
 
+def call_clearpass_api():
+    requests.packages.urllib3.disable_warnings()  # Supress warning for unverified connection to clearpass
+    basic = HTTPBasicAuth(cred.username, cred.password)
+    # mac = "AC-91-A1-83-B5-2B"
+    mac = "0030180891C7"
+    resp = requests.get("http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint", verify=False, auth=basic)
+    root = ET.fromstring(resp.content)  # Parsing the retrieved API XML Response
+    tree = ET.ElementTree(root)
+    tree.write("clearpass-tables/clear_out.xml")
 
-def run_web_interface():
-    web = Web()
-    web.run("0.0.0.0", 5000)
+    # for elem in root.iter():
+    #     # print(elem.tag, elem.attrib)
+    #     m = elem.findall("macAddress")
+    #     h = elem.findall("hostname")
+    #     print(m, h
 
+def handle_clearpass_table():
+    tree = ET.parse("clearpass-tables\clear_out.xml").getroot()
+    array = []
+    tmp_hostname = None
+    tmp_mac = None
+    for elem in tree.iter():
+        if "hostname" in elem.attrib:
+            tmp_hostname = elem.attrib["hostname"]
+        if "macAddress" in elem.attrib:
+            tmp_mac = elem.attrib["macAddress"]
+
+        if tmp_hostname is not None and tmp_mac is not None:
+            add = {
+                "hostname": tmp_hostname,
+                "mac": tmp_mac
+            }
+            tmp_hostname = None
+            tmp_mac = None
+            array.append(add)
+
+    print(array)
 
 if __name__ == "__main__":
     # run_mac_discovery()
     # run_mac_table_filter()
-    run_web_interface()
+    # call_clearpass_api()
+    handle_clearpass_table()
