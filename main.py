@@ -70,6 +70,7 @@ def run_mac_table_filter():
 
 def run_web_interface():
     web = Web()
+    web.run("0.0.0.0", 5000)
 
 
 if __name__ == "__main__":

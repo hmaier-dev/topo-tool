@@ -1,6 +1,6 @@
 import os.path
-
-from netconf import Comware7
+# Package: napalm-h3c-comware
+from napalm import get_network_driver
 
 '''
 Main Class where All the good Stuff Happens
@@ -8,25 +8,28 @@ Main Class where All the good Stuff Happens
 
 
 class Discovery:
-    def __init__(self, username, password):
+    def __init__(self,
+                 hostname,
+                 username,
+                 password):
+        self.hostname = hostname
         self.username = username
         self.password = password
+
 
     def get_mac_table(self, switch):
         """
         Takes tuple with string: name and string: ip
+        unnecessary
         """
         name = switch[0]
         ip = switch[1]
-        # Connecting to the Comware via netconf
         print(f"Connecting to {name} with {ip}...")
-        netconf = Comware7(
-            hostname=ip,
-            username=self.username,
-            password=self.password)
-
+        driver = get_network_driver("h3c_comware")
+        driver = driver(self.hostname, self.username, self.password)
+        driver.open()
         print(f"Pulling MAC-Table from {name}...")
-        netconf_output = netconf.get_mac_table()
+        netconf_output = driver.get_mac_address_table()
         # Write mac-address-table to a file
         print(f"Formatting and writing to file...")
         file = "RAW_" + name + ".json"
