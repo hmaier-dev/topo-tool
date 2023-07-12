@@ -2,6 +2,7 @@ from discover import Discovery  # Connection to HP Switches
 from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
 from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
 from db import Database
+import time
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),

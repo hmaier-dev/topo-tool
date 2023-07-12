@@ -63,3 +63,10 @@ class Database:
             sw_name = entry[0]
             sql = cmd(sw_name)
             self.cursor.execute(sql)
+
+    def insert_api_data(self):
+
+        pass
+
+    def insert_switch_data(self):
+        pass

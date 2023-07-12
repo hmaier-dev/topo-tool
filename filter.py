@@ -53,14 +53,12 @@ class Filtering:
             # returning the list sorted by the sort_helper key
             return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
-    def write_to_mac_directory(self, mac_table):
+    def get_filtered_mac_table(self):
+        clean = self.cleaning_mac_table()
+
         path = os.path.join("switch-tables", self.clean_file_name)
         with open(path, "w") as out:
-            out.write(str(mac_table))
+            out.write(str(clean))
             out.close()
 
-    def get_filtered_mac_table(self):
-        # Calling all filtering and sorting functions
-        clean = self.cleaning_mac_table()
-        self.write_to_mac_directory(clean)  # Writes clean table
-        return clean
+        # return clean
