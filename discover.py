@@ -1,6 +1,7 @@
 import os.path
 # Package: napalm-h3c-comware
 from napalm import get_network_driver
+import cred
 
 '''
 Main Class where All the good Stuff Happens
@@ -8,11 +9,9 @@ Main Class where All the good Stuff Happens
 
 
 class Discovery:
-    def __init__(self,
-                 username,
-                 password):
-        self.username = username
-        self.password = password
+    def __init__(self):
+        self.USERNAME = cred.sw_user
+        self.PASSWORD = cred.sw_password
 
 
     def get_mac_table(self, switch):
@@ -23,7 +22,7 @@ class Discovery:
         ip = switch[1]
         print(f"Connecting to {name} with {ip}...")
         driver = get_network_driver("h3c_comware")
-        driver = driver(ip, self.username, self.password)
+        driver = driver(ip, self.USERNAME, self.PASSWORD)
         driver.open()
         print(f"Pulling MAC-Table from {name}...")
         netconf_output = driver.get_mac_address_table()
