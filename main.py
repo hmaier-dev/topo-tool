@@ -1,7 +1,7 @@
 from discover import Discovery  # Connection to HP Switches
 from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
 from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
-
+from db import Database
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),
@@ -37,7 +37,12 @@ if __name__ == "__main__":
     #     f.get_filtered_mac_table()  # Reads from ./switch-tables
     #
     # Pulling hostname + mac Combo
-    cp = Clearpass()
-    print(cp.data)
+    # cp = Clearpass()
+    # print(cp.data)
+
+    # Database-fun
+    db = Database()
+    db.setup(SWITCHES)
+    # db.drop(SWITCHES)
 
 
