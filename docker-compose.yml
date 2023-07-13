@@ -1,10 +1,4 @@
 services:
-  data:
-    build: .
-    image: python
-    container_name: topo-tool_data
-    depends_on:
-      - db
   db:
     image: mariadb:latest
     container_name: topo-tool_db
@@ -12,8 +6,8 @@ services:
       # <Extern>:<Intern>
       - 3307:3306
     environment:
-      - MARIADB_USER=root
-      - MARIADB_PASSWORD=root
+      - MARIADB_USER=www-data
+      - MARIADB_PASSWORD=db_pwd
       - MARIADB_ROOT_PASSWORD=root
       - MARIADB_DATABASE=topo-tool
     healthcheck:
@@ -21,3 +15,9 @@ services:
       interval: 15s
       timeout: 3s
       retries: 5
+  data:
+    build: data
+    image: python
+    container_name: topo-tool_data
+    depends_on:
+      - db
