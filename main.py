@@ -37,13 +37,12 @@ if __name__ == "__main__":
         f = Filtering(switch)
         f.get_filtered_mac_table()  # Reads from ./switch-tables
 
-    ## Pulling hostname + mac Combo
+    # Pulling hostname + mac Combo
     cp = Clearpass()
-    print(cp.data)
 
     # Database-fun
     db = Database()
     db.setup(SWITCHES)
-    # db.drop(SWITCHES)
+    db.drop(SWITCHES)
 
 

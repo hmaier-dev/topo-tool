@@ -12,6 +12,11 @@ class Discovery:
     def __init__(self):
         self.USERNAME = cred.sw_user
         self.PASSWORD = cred.sw_password
+        self.table_dir = "switch-tables"
+
+        if not os.path.exists(self.table_dir):
+            os.makedirs(self.table_dir)
+
 
 
     def get_mac_table(self, switch):
@@ -29,7 +34,7 @@ class Discovery:
         # Write mac-address-table to a file
         print(f"Formatting and writing to file...")
         file = "RAW_" + name + ".json"
-        path = os.path.join("switch-tables", file)
+        path = os.path.join(self.table_dir, file)
         with open(path, "w") as out:
             mac = str(netconf_output)
             # Formatting the output-string to be useful for json
