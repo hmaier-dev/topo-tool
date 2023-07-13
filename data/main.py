@@ -28,10 +28,13 @@ SWITCHES = [
 
 if __name__ == "__main__":
     # Database-fun
-    print("Initializing the database...")
-    db = Database()
+    while True:
+        print("Initializing the database...")
+        db = Database()
+        if db:
+            break
+        time.sleep(5)
     db.setup(SWITCHES)
-    time.sleep(60)
     while True:
         # Pulling the MAC-Tables
         netconf = Discovery()
@@ -45,6 +48,7 @@ if __name__ == "__main__":
 
         # Pulling hostname + mac Combo
         cp = Clearpass()
+        time.sleep(30)
 
 
 
