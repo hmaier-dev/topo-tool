@@ -1,4 +1,4 @@
-from data import cred
+import cred
 import mariadb
 import sys
 

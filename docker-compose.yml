@@ -12,12 +12,14 @@ services:
       - MARIADB_DATABASE=topo-tool
     healthcheck:
       test: [ "CMD","curl","-f","http://localhost:3306" ]
-      interval: 15s
+      interval: 5s
       timeout: 3s
       retries: 5
+
   data:
     build: data
     image: python
     container_name: topo-tool_data
     depends_on:
-      - db
+      db:
+        condition: service_healthy
