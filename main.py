@@ -1,7 +1,7 @@
-from discover import Discovery  # Connection to HP Switches
-from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
-from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
-from db import Database
+from data.discover import Discovery  # Connection to HP Switches
+from data.filter import Filtering  # Filtering/Formatting Output from MAC-Tables
+from data.api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
+from db.db import Database
 import time
 
 SWITCHES = [
@@ -27,19 +27,19 @@ SWITCHES = [
 ]
 
 if __name__ == "__main__":
-    # # Pulling the MAC-Tables
-    # netconf = Discovery()
-    # for sw in SWITCHES:
-    #     netconf.get_mac_table(sw)  # Writes to ./switch-tables Directory
-    #
-    # # Cleaning the MAC-Tables
-    # for switch in SWITCHES:
-    #     f = Filtering(switch)
-    #     f.get_filtered_mac_table()  # Reads from ./switch-tables
-    #
-    # Pulling hostname + mac Combo
-    # cp = Clearpass()
-    # print(cp.data)
+    # Pulling the MAC-Tables
+    netconf = Discovery()
+    for sw in SWITCHES:
+        netconf.get_mac_table(sw)  # Writes to ./switch-tables Directory
+
+    # Cleaning the MAC-Tables
+    for switch in SWITCHES:
+        f = Filtering(switch)
+        f.get_filtered_mac_table()  # Reads from ./switch-tables
+
+    ## Pulling hostname + mac Combo
+    cp = Clearpass()
+    print(cp.data)
 
     # Database-fun
     db = Database()
