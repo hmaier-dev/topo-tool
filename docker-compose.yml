@@ -1,7 +1,16 @@
 services:
+  data:
+    build: data
+    image: python
+    container_name: data
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
   db:
     image: mariadb:latest
-    container_name: topo-tool_db
+    container_name: db
     ports:
       # <Extern>:<Intern>
       - 3307:3306
@@ -10,16 +19,10 @@ services:
       - MARIADB_PASSWORD=db_pwd
       - MARIADB_ROOT_PASSWORD=root
       - MARIADB_DATABASE=topo-tool
+    command: --default-storage-engine innodb
     healthcheck:
-      test: [ "CMD","curl","-f","http://localhost:3306" ]
-      interval: 5s
-      timeout: 3s
+      test: [ "CMD","mysql","-f","http://localhost:3306" ]
+      interval: 1s
+      timeout: 1s
       retries: 5
 
-  data:
-    build: data
-    image: python
-    container_name: topo-tool_data
-    depends_on:
-      db:
-        condition: service_healthy
