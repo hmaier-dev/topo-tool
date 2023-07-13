@@ -6,8 +6,7 @@ services:
     depends_on:
       - db
   db:
-    build: data/db
-    image: mariadb/server:latest
+    image: mariadb:latest
     container_name: topo-tool_db
     ports:
       # <Extern>:<Intern>

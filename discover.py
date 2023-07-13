@@ -1,7 +1,7 @@
 import os.path
 # Package: napalm-h3c-comware
 from napalm import get_network_driver
-from data import cred
+import cred
 
 '''
 Main Class where All the good Stuff Happens
