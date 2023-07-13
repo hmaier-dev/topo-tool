@@ -1,3 +1,0 @@
-napalm-h3c-comware
-requests
-mariadb
