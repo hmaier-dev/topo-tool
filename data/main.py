@@ -56,19 +56,5 @@ def main():
         time.sleep(30)
 
 
-def wait_for_db():
-    x = 1
-    while True and x <= 5:
-        print("Trying database connection...")
-        try:
-            urllib3.request('localhost:3306', timeout=1)
-            return
-        except Exception as e:
-            print(f"Problem with db {e}...")
-        time.sleep(5)
-
-
 if __name__ == "__main__":
-    print("Starting...")
-    time.sleep(10)
     main()
