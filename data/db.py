@@ -11,7 +11,6 @@ class Database:
         self.cursor = self.connect()
 
     def connect(self):
-
         try:
             conn = mariadb.connect(
                 user=self.USERNAME,
@@ -20,13 +19,11 @@ class Database:
                 port=3306,
                 database=self.DB_NAME
             )
+            return conn.cursor()
         except mariadb.Error as e:
             # if authentication-plugin-caching-sha2-password-cannot-be-loaded
             # ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
             print(f"Error connecting to MariaDB Platform: {e}")
-            sys.exit(1)
-
-        return conn.cursor()
 
     # Setting up the database
     def setup(self, switch_array):
@@ -64,9 +61,10 @@ class Database:
             sql = cmd(sw_name)
             self.cursor.execute(sql)
 
-    def insert_api_data(self):
-
+    # Data containing Mac + Switch-Port combo
+    def insert_switch_data(self):
         pass
 
-    def insert_switch_data(self):
+    # Data containing Hostname + Mac combo
+    def insert_api_data(self):
         pass

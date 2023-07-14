@@ -1,12 +1,10 @@
 services:
   data:
-    build: ./data
+    build:
+      context: ./data
     container_name: data
-    image: python:3.11-alpine
-    depends_on:
-      - db
-    restart: on-failure
-
+    environment:
+      - PYTHONUNBUFFERED=1
 
   db:
     image: mariadb:latest
@@ -21,8 +19,8 @@ services:
       - MARIADB_DATABASE=topo-tool
     command: --default-storage-engine innodb
 #    healthcheck:
-##      test: [ "CMD","curl","-f","http://localhost:3306" ]dd
-#      test: ["CMD", "mariadb -u www-data --password=db_pwd -e'USE topo-tool;'"]
+#      test: [ "CMD","curl","-f","http://localhost:3306" ]
+##      test: ["CMD", "mariadb -u www-data --password=db_pwd -e'USE topo-tool;'"]
 #      interval: 1s
 #      timeout: 1s
 #      retries: 5

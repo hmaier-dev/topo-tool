@@ -1,3 +1,6 @@
+import sys
+import urllib3
+
 from db import Database
 from discover import Discovery  # Connection to HP Switches
 from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
@@ -26,16 +29,16 @@ SWITCHES = [
     # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink, no BridgeAggregation filtering possible
 ]
 
-if __name__ == "__main__":
-    # Database-fun
-    while True:
-        print("Initializing the database...")
+
+def main():
+    print("Setup database...")
+    try:
         db = Database()
-        if db:
-            break
-        time.sleep(5)
-    db.setup(SWITCHES)
+        db.setup(SWITCHES)
+    except Exception as e:
+        print(f"Problem with db: {e}")
     while True:
+        print("Scanning the tables...")
         # Pulling the MAC-Tables
         netconf = Discovery()
         for sw in SWITCHES:
@@ -48,7 +51,24 @@ if __name__ == "__main__":
 
         # Pulling hostname + mac Combo
         cp = Clearpass()
+        cp.call_api()
+        cp.filter_xml()
         time.sleep(30)
 
 
+def wait_for_db():
+    x = 1
+    while True and x <= 5:
+        print("Trying database connection...")
+        try:
+            urllib3.request('localhost:3306', timeout=1)
+            return
+        except Exception as e:
+            print(f"Problem with db {e}...")
+        time.sleep(5)
 
+
+if __name__ == "__main__":
+    print("Starting...")
+    time.sleep(10)
+    main()

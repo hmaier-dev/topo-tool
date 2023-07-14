@@ -1,6 +1,7 @@
-import os.path
 # Package: napalm-h3c-comware
 from napalm import get_network_driver
+
+import os.path
 import cred
 
 '''
