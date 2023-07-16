@@ -22,13 +22,15 @@ class Clearpass:
             self.call_api()
         self.filter_xml()
 
-
     def call_api(self):
-        requests.packages.urllib3.disable_warnings()  # Supress warning for unverified connection to clearpass
+        # Supress warning for unverified connection to clearpass
+        requests.packages.urllib3.disable_warnings()
         basic = HTTPBasicAuth(self.USER, self.PASSWORD)
         print("Requesting data from clearpass...")
-        resp = requests.get("http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint", verify=False, auth=basic)
-        root = ET.fromstring(resp.content)  # Parsing the retrieved API XML Response
+        resp = requests.get(
+            "http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint", verify=False, auth=basic)
+        # Parsing the retrieved API XML Response
+        root = ET.fromstring(resp.content)
         tree = ET.ElementTree(root)
         print("Write data to xml...")
         tree.write(self.path_xml)

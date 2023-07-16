@@ -3,21 +3,19 @@ services:
     build:
       context: ./data
     container_name: data
-    environment:
-      - PYTHONUNBUFFERED=1
 
-  db:
-    image: mariadb:latest
-    container_name: db
-    ports:
-      # <Extern>:<Intern>
-      - 3307:3306
-    environment:
-      - MARIADB_USER=www-data
-      - MARIADB_PASSWORD=db_pwd
-      - MARIADB_ROOT_PASSWORD=root
-      - MARIADB_DATABASE=topo-tool
-    command: --default-storage-engine innodb
+# # db:
+# #   image: mariadb:latest
+# #   container_name: db
+# #   ports:
+# #     # <Extern>:<Intern>
+# #     - 3307:3306
+# #   environment:
+# #     - MARIADB_USER=www-data
+# #     - MARIADB_PASSWORD=db_pwd
+# #     - MARIADB_ROOT_PASSWORD=root
+# #     - MARIADB_DATABASE=topo-tool
+# #   command: --default-storage-engine innodb
 #    healthcheck:
 #      test: [ "CMD","curl","-f","http://localhost:3306" ]
 ##      test: ["CMD", "mariadb -u www-data --password=db_pwd -e'USE topo-tool;'"]
