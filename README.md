@@ -5,6 +5,8 @@ From this comparision, we can allocate which **switch-port** belongs to which **
 ## Pre-Requisites
 Before running this tool you need several setup/in-mind:
 
+- (obviously) network-connection to comware-switches aswell to a clearpass
+
 - a mariadb
 
 - `cred.py`-file to import username + credentials for 
