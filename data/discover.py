@@ -2,7 +2,7 @@
 from napalm import get_network_driver
 
 import os.path
-from web import cred
+import cred
 
 '''
 Main Class where All the good Stuff Happens
@@ -14,30 +14,39 @@ class Discovery:
         self.USERNAME = cred.sw_user
         self.PASSWORD = cred.sw_password
         self.table_dir = "switch-tables"
+        self.mac_table = []
+        # Name and IP of Switch
+        self.name = ""
+        self.ip = ""
 
         if not os.path.exists(self.table_dir):
             os.makedirs(self.table_dir)
-
-
 
     def get_mac_table(self, switch):
         """
         Takes tuple with string: name and string: ip
         """
-        name = switch[0]
-        ip = switch[1]
-        print(f"Connecting to {name} with {ip}...")
+        try:
+            self.name = switch[0]
+            self.ip = switch[1]
+        except Exception as e:
+            print(f"No name or ip given: {e}")
+        print(f"Connecting to {self.name} with {self.ip}...")
         driver = get_network_driver("h3c_comware")
-        driver = driver(ip, self.USERNAME, self.PASSWORD)
+        driver = driver(self.ip, self.USERNAME, self.PASSWORD)
         driver.open()
-        print(f"Pulling MAC-Table from {name}...")
-        netconf_output = driver.get_mac_address_table()
-        # Write mac-address-table to a file
-        print(f"Formatting and writing to file...")
-        file = "RAW_" + name + ".json"
+        print(f"Pulling MAC-Table from {self.name}...")
+        self.mac_table = driver.get_mac_address_table()
+        self.write_to_file()
+        print("-------------------------------------------------------")
+        return self.mac_table
+
+    def write_to_file(self):
+        print("Formatting and writing to file...")
+        file = "RAW_" + self.name + ".json"
         path = os.path.join(self.table_dir, file)
         with open(path, "w") as out:
-            mac = str(netconf_output)
+            mac = str(self.mac_table)
             # Formatting the output-string to be useful for json
             mac = mac.replace("\'", "\"")
             mac = mac.replace(" True", "true")

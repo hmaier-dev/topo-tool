@@ -1,4 +1,4 @@
-from web import cred
+import cred
 import mariadb
 
 
@@ -26,7 +26,7 @@ class Database:
 
     # Setting up the database
     def setup(self, switch_array):
-        cmd = lambda name, ip: (
+        def cmd(name, ip): return (
             f"CREATE TABLE IF NOT EXISTS `{name}` ("
             f"`id` int NOT NULL AUTO_INCREMENT,"
             f"`interface_name` char(50) DEFAULT NULL,"
@@ -46,7 +46,7 @@ class Database:
 
     # Remove table
     def drop(self, switch_array):
-        cmd = lambda name: f" DROP TABLE `{name}`;"
+        def cmd(name): return f" DROP TABLE `{name}`;"
         for entry in switch_array:
             sw_name = entry[0]
             sql = cmd(sw_name)
@@ -54,14 +54,15 @@ class Database:
 
     # Remove data from table
     def truncate(self, switch_array):
-        cmd = lambda name: f" TRUNCATE TABLE `{name}`;"
+        def cmd(name): return f" TRUNCATE TABLE `{name}`;"
         for entry in switch_array:
             sw_name = entry[0]
             sql = cmd(sw_name)
             self.cursor.execute(sql)
 
     # Data containing Mac + Switch-Port combo
-    def insert_switch_data(self):
+    def insert_switch_data(self, json):
+
         pass
 
     # Data containing Hostname + Mac combo

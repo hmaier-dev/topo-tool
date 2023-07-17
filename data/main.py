@@ -4,7 +4,8 @@ import urllib3
 from db import Database
 from discover import Discovery  # Connection to HP Switches
 from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
-from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
+# Pulling hostname + mac from NAC (Network Access Control)
+from api import Clearpass
 import time
 
 SWITCHES = [
@@ -40,14 +41,13 @@ def main():
     while True:
         print("Scanning the tables...")
         # Pulling the MAC-Tables
-        netconf = Discovery()
+        access = Discovery()
+        janitor = Filtering()
         for sw in SWITCHES:
-            netconf.get_mac_table(sw)  # Writes to ./switch-tables Directory
-
-        # Cleaning the MAC-Tables
-        for switch in SWITCHES:
-            f = Filtering(switch)
-            f.get_filtered_mac_table()  # Reads from ./switch-tables
+            dirty = access.get_mac_table(sw)
+            clean = janitor.cleaning_mac_table(sw, dirty)
+            print(clean)
+            db.insert_switch_data(clean)
 
         # Pulling hostname + mac Combo
         cp = Clearpass()

@@ -3,7 +3,7 @@ import requests
 from requests import packages
 from requests.auth import HTTPBasicAuth
 import xml.etree.ElementTree as ET
-from web import cred
+import cred
 
 
 class Clearpass:
