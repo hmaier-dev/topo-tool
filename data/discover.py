@@ -2,7 +2,7 @@
 from napalm import get_network_driver
 
 import os.path
-import cred
+from web import cred
 
 '''
 Main Class where All the good Stuff Happens

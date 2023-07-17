@@ -1,6 +1,5 @@
-import cred
+from web import cred
 import mariadb
-import sys
 
 
 class Database:

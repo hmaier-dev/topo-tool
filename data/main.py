@@ -25,8 +25,8 @@ SWITCHES = [
     # ("SW_N2", "192.168.132.144"), currently not reachable
     ("SW_WS", "192.168.132.130"),
     ("SW_KMS", "192.168.132.128"),
-    ("SW_P", "192.168.132.136"),
-    # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink, no BridgeAggregation filtering possible
+    # ("SW_P", "192.168.132.136"), 1/0/28 set as uplink
+    # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink
 ]
 
 
