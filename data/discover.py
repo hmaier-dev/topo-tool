@@ -18,9 +18,9 @@ class Discovery:
         # Name and IP of Switch
         self.name = ""
         self.ip = ""
-
-        if not os.path.exists(self.table_dir):
-            os.makedirs(self.table_dir)
+        #
+        # if not os.path.exists(self.table_dir):
+        #     os.makedirs(self.table_dir)
 
     def get_mac_table(self, switch):
         """
@@ -31,15 +31,23 @@ class Discovery:
             self.ip = switch[1]
         except Exception as e:
             print(f"No name or ip given: {e}")
-        print(f"Connecting to {self.name} with {self.ip}...")
         driver = get_network_driver("h3c_comware")
-        driver = driver(self.ip, self.USERNAME, self.PASSWORD)
-        driver.open()
-        print(f"Pulling MAC-Table from {self.name}...")
-        self.mac_table = driver.get_mac_address_table()
-        self.write_to_file()
-        print("-------------------------------------------------------")
-        return self.mac_table
+        mac = []
+        try:
+            driver = driver(self.ip, self.USERNAME, self.PASSWORD, timeout=5)
+            driver.open()
+            mac = driver.get_mac_address_table()
+        except Exception as e:
+            print(f"Problems access switch: {e}")
+        return mac
+        # mac = str(mac)
+        # # Formatting the output-string to be useful for json
+        # mac = mac.replace("\'", "\"")
+        # mac = mac.replace(" True", "true")
+        # mac = mac.replace(" False", "false")
+        # # self.write_to_file()
+        # print("-------------------------------------------------------")
+        # return mac
 
     def write_to_file(self):
         print("Formatting and writing to file...")

@@ -11,16 +11,7 @@ class Clearpass:
         self.USER = cred.api_user
         self.PASSWORD = cred.api_password
         self.table_dir = "clearpass-tables"
-
-        if not os.path.exists(self.table_dir):
-            os.makedirs(self.table_dir)
-
         self.data = []
-        self.path_xml = os.path.join(self.table_dir, "clearpass_table.xml")
-        self.path_json = os.path.join(self.table_dir, "clearpass_table.json")
-        if call_api:
-            self.call_api()
-        self.filter_xml()
 
     def call_api(self):
         # Supress warning for unverified connection to clearpass
@@ -32,12 +23,11 @@ class Clearpass:
         # Parsing the retrieved API XML Response
         root = ET.fromstring(resp.content)
         tree = ET.ElementTree(root)
-        print("Write data to xml...")
-        tree.write(self.path_xml)
+        return tree
 
-    def filter_xml(self):
+    def convert_to_json(self, tree):
         print("Parsing xml data...")
-        tree = ET.parse(self.path_xml).getroot()
+        # tree = ET.parse(self.path_xml).getroot()
         tmp_hostname = None
         tmp_mac = None
         print("Filtering xml data into json...")
@@ -56,7 +46,5 @@ class Clearpass:
                 tmp_mac = None
                 # array.append(add)
                 self.data.append(add)
+        return self.data
 
-        with open(self.path_json, "w") as file:
-            file.write(str(self.data))
-            file.close()
