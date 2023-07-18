@@ -54,12 +54,12 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
             # Resolving num of stack and interface
             matches = re.findall(r'\d+', interface_name)
             sort_helper = matches[0] + matches[2]  # combine two strings
-            add = {"mac": mac,                          # string
-                   "interface_name": interface_name,    # string
-                   "vlan": vlan,                        # int
-                   "stack": matches[0],                 # int
-                   "interface_num": matches[2],         # int
-                   "sort_helper": int(sort_helper)}     # int
+            add = {"mac": mac,  # string
+                   "interface_name": interface_name,  # string
+                   "vlan": vlan,  # int
+                   "stack": matches[0],  # int
+                   "interface_num": matches[2],  # int
+                   "sort_helper": int(sort_helper)}  # int
             # Step 3
             # Adding the new entry to a temporary list
             tmp_list.append(add)
@@ -79,26 +79,37 @@ def main():
     print("Connection to database successful!")
     db = Database(db_host, db_port)
     print("Cleaning the database tables...")
-    # db.truncate(SWITCHES)
+    for sw in SWITCHES:
+        db.truncate(sw[0])
+    db.truncate("clearpass")
 
-    # Pulling the MAC-Tables
-    # access = Discovery()
-    # max = len(SWITCHES)
-    # c = 1
-    # for sw in SWITCHES:
-    #     print(f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}...")
-    #     dirty = access.get_mac_table(sw)
-    #     clean = cleaning_mac_table(dirty)
-    #     db.insert_switch_data(sw, clean)
-    #     c += 1
+    access = Discovery()
+    max = len(SWITCHES)
+    c = 1
+    for sw in SWITCHES:
+        print(f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}...")
+        dirty = access.get_mac_table(sw)
+        clean = cleaning_mac_table(dirty)
+        db.insert_switch_data(sw, clean)
+        c += 1
 
-# for sw in SWITCHES:
-    # Pulling hostname + mac Combo
-    db.setup_clearpass_table()
+    print("Connecting to the clearpass api...")
     cp = Clearpass()
     xml = cp.call_api()
     json = cp.convert_to_json(xml)
     db.insert_api_data(json)
+
+    print("Searching MAC + Hostname pairs...")
+    for sw in SWITCHES:
+        sw_data = db.select_switch_data(sw)
+        for entry in sw_data:
+            id = entry[0]
+            mac = entry[2]
+            mac = mac.replace(":", "")
+            hostname = db.select_hostname_by_mac(mac)
+            if hostname is not None:
+                db.update_hostname_by_id(hostname[0], id, sw)
+                print(f"{hostname} -> {mac}")
 
     print("Scanning finished!")
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

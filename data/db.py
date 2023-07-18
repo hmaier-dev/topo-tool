@@ -70,16 +70,13 @@ class Database:
             self.cursor.execute(sql)
 
     # Remove data from table
-    def truncate(self, switch_array):
+    def truncate(self, name):
         def cmd(name): return f" TRUNCATE TABLE `{name}`;"
-
         cmd2 = lambda name: f"ALTER TABLE `{name}` AUTO_INCREMENT = 1 ;"
-        for entry in switch_array:
-            sw_name = entry[0]
-            sql = cmd(sw_name)
-            sql2 = cmd2(sw_name)
-            self.cursor.execute(sql)
-            self.cursor.execute(sql2)
+        sql = cmd(name)
+        sql2 = cmd2(name)
+        self.cursor.execute(sql)
+        self.cursor.execute(sql2)
 
     # Data containing Mac + Switch-Port combo
     def insert_switch_data(self, switch, mac_list):
@@ -124,3 +121,27 @@ class Database:
                 print(resp)
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+    def select_clearpass_data(self):
+        sql = f"SELECT * FROM clearpass ;"
+        self.cursor.execute(sql)
+        rows = self.cursor.fetchall()
+        return rows
+
+    def select_switch_data(self, switch):
+        name = switch[0]
+        sql = f"SELECT * FROM `{name}` ;"
+        self.cursor.execute(sql)
+        rows = self.cursor.fetchall()
+        return rows
+
+    def select_hostname_by_mac(self, mac):
+        sql = f"SELECT hostname FROM `clearpass` WHERE mac = ? "
+        self.cursor.execute(sql, (mac,))
+        row = self.cursor.fetchone()
+        return row
+
+    def update_hostname_by_id(self, hostname, id, switch):
+        name = switch[0]
+        sql = f"UPDATE `{name}` SET hostname = '{hostname}' WHERE id = {id} ;"
+        self.cursor.execute(sql)
