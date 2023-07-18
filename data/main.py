@@ -1,7 +1,7 @@
 import socket
-import time
 import re
 import datetime
+import time
 
 from db import Database
 from discover import Discovery  # Connection to HP Switches
@@ -30,7 +30,7 @@ SWITCHES = [
     # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink
 ]
 
-db_host = "localhost"
+db_host = "db"
 db_port = 3306
 
 
@@ -71,6 +71,7 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
 def main():
     try:
         print("Testing connection to the database...")
+        time.sleep(15)
         check(db_host, db_port)
     except Exception as e:
         print(f"Problem with db: {e}")
@@ -78,6 +79,9 @@ def main():
 
     print("Connection to database successful!")
     db = Database(db_host, db_port)
+    print("Setup tables...")
+    db.setup_clearpass_table()
+    db.setup_switch_tables(SWITCHES)
     print("Cleaning the database tables...")
     for sw in SWITCHES:
         db.truncate(sw[0])
