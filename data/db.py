@@ -3,10 +3,12 @@ import mariadb
 
 
 class Database:
-    def __init__(self):
+    def __init__(self, host, port):
         self.USERNAME = cred.db_user
         self.PASSWORD = cred.db_password
         self.DB_NAME = "topology-tool"
+        self.host = host
+        self.port = port
         self.cursor = self.connect()
 
     def connect(self):
@@ -14,8 +16,8 @@ class Database:
             conn = mariadb.connect(
                 user=self.USERNAME,
                 password=self.PASSWORD,
-                host="localhost",
-                port=3306,
+                host=self.host,
+                port=self.port,
                 database=self.DB_NAME
             )
             return conn.cursor()

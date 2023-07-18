@@ -1,12 +1,11 @@
-import sys
-import urllib3
+import socket
+import time
 
 from db import Database
 from discover import Discovery  # Connection to HP Switches
 from filter import Filtering  # Filtering/Formatting Output from MAC-Tables
 # Pulling hostname + mac from NAC (Network Access Control)
 from api import Clearpass
-import time
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),
@@ -30,14 +29,26 @@ SWITCHES = [
     # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink
 ]
 
+db_host = "localhost"
+db_port = 3306
+
+
+def check(host, port, timeout=2):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # presumably
+    sock.settimeout(timeout)
+    sock.connect((host, port))
+    sock.close()
+
 
 def main():
-    print("Setup database...")
     try:
-        db = Database()
-        db.setup(SWITCHES)
+        print("Testing connection to the database...")
+        check(db_host, db_port)
     except Exception as e:
         print(f"Problem with db: {e}")
+        return
+    db = Database(db_host, db_port)
+    db.setup(SWITCHES)
     while True:
         print("Scanning the tables...")
         # Pulling the MAC-Tables
