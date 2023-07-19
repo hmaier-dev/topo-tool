@@ -2,11 +2,11 @@ import socket
 import re
 import datetime
 import time
+import sys
 
 from db import Database
 from discover import Discovery  # Connection to HP Switches
-# Pulling hostname + mac from NAC (Network Access Control)
-from api import Clearpass
+from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
 
 SWITCHES = [
     ("SW_A-Nord", "192.168.132.125"),
@@ -68,10 +68,10 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
     return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
 
-def main():
+def scanner():
     try:
-        print("Testing connection to the database...")
         time.sleep(15)
+        print("Testing connection to the database...")
         check(db_host, db_port)
     except Exception as e:
         print(f"Problem with db: {e}")
@@ -119,6 +119,18 @@ def main():
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Current date and time : {now}")
 
+def searcher():
+    pass
+
 
 if __name__ == "__main__":
-    main()
+    y = len(sys.argv)
+    for x in range(1,y):
+        if sys.argv[x] == "--scanner":
+            scanner()
+            break
+        elif sys.argv[x] == "--search":
+            searcher()
+            break
+
+    # scanner()

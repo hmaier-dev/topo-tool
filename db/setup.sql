@@ -1,0 +1,1 @@
+GRANT delete, insert, select, update, drop ON `topology-tool`.* TO 'www-data'@'localhost';

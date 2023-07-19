@@ -7,6 +7,7 @@ class Database:
         self.USERNAME = cred.db_user
         self.PASSWORD = cred.db_password
         self.DB_NAME = "topology-tool"
+
         self.host = host
         self.port = port
         self.conn = self.connect()
@@ -22,11 +23,13 @@ class Database:
                 port=self.port,
                 database=self.DB_NAME
             )
-            return conn
         except mariadb.Error as e:
             # if authentication-plugin-caching-sha2-password-cannot-be-loaded
             # ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
             print(f"Error connecting to MariaDB Platform: {e}")
+            return
+
+        return conn
 
     # Setting up the database
     def setup_switch_tables(self, switch_array):
