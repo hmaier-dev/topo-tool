@@ -30,7 +30,8 @@ SWITCHES = [
     # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink
 ]
 
-db_host = "db"
+db_host = "localhost"
+# db_host = "db"
 db_port = 3306
 
 
@@ -70,19 +71,19 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
 
 def scanner():
     try:
-        time.sleep(15)
-        print("Testing connection to the database...")
+        # time.sleep(15)
+        yield "Testing connection to the database..."
         check(db_host, db_port)
     except Exception as e:
-        print(f"Problem with db: {e}")
+        yield(f"Problem with db: {e}")
         return
 
-    print("Connection to database successful!")
+    yield "Connection to database successful!"
     db = Database(db_host, db_port)
-    print("Setup tables...")
+    yield "Setup tables..."
     db.setup_clearpass_table()
     db.setup_switch_tables(SWITCHES)
-    print("Cleaning the database tables...")
+    yield "Cleaning the database tables..."
     for sw in SWITCHES:
         db.truncate(sw[0])
     db.truncate("clearpass")
@@ -91,19 +92,19 @@ def scanner():
     max = len(SWITCHES)
     c = 1
     for sw in SWITCHES:
-        print(f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}...")
+        yield f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}..."
         dirty = access.get_mac_table(sw)
         clean = cleaning_mac_table(dirty)
         db.insert_switch_data(sw, clean)
         c += 1
 
-    print("Connecting to the clearpass api...")
+    yield "Connecting to the clearpass api..."
     cp = Clearpass()
     xml = cp.call_api()
     json = cp.convert_to_json(xml)
     db.insert_api_data(json)
 
-    print("Searching MAC + Hostname pairs...")
+    yield "Searching MAC + Hostname pairs..."
     for sw in SWITCHES:
         sw_data = db.select_switch_data(sw)
         for entry in sw_data:
@@ -113,11 +114,11 @@ def scanner():
             hostname = db.select_hostname_by_mac(mac)
             if hostname is not None:
                 db.update_hostname_by_id(hostname[0], id, sw)
-                print(f"{hostname} -> {mac}")
+                yield f"{hostname} -> {mac}"
 
-    print("Scanning finished!")
+    yield "Scanning finished!"
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Current date and time : {now}")
+    yield f"Current date and time : {now}"
 
 def searcher():
     pass
@@ -127,7 +128,8 @@ if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1,y):
         if sys.argv[x] == "--scanner":
-            scanner()
+            for out in scanner():  # generator object
+                print(out)
             break
         elif sys.argv[x] == "--search":
             searcher()

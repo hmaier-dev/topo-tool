@@ -101,7 +101,6 @@ class Database:
             print(sql)
             try:
                 resp = self.cursor.execute(sql)
-                print(resp)
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
@@ -121,7 +120,6 @@ class Database:
             print(sql)
             try:
                 resp = self.cursor.execute(sql)
-                print(resp)
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
