@@ -3,6 +3,10 @@ services:
     build:
       context: ./data
     container_name: data
+  web:
+    build:
+      context: ./web
+    container_name: web
 
   db:
     image: mariadb:latest

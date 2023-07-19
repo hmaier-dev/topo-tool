@@ -1,10 +1,9 @@
 import socket
 import re
 import datetime
-import time
 import sys
 
-from db import Database
+from data.db import Database
 from discover import Discovery  # Connection to HP Switches
 from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
 
