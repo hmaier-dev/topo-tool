@@ -113,18 +113,6 @@ def scanner():
                 yield f"{hostname[0]} -> {mac}"
         c += 1
 
-
-    # for sw in SWITCHES:
-    #     sw_data = db.select_switch_data(sw)
-    #     for entry in sw_data:
-    #         id = entry[0]
-    #         mac = entry[2]
-    #         mac = mac.replace(":", "")
-    #         hostname = db.select_hostname_by_mac(mac)  # Calls the Clearpass table
-    #         if hostname is not None:
-    #             db.update_hostname_by_id(hostname[0], id, sw)
-    #             yield f"{hostname[0]} -> {mac}"
-
     yield "Scanning finished!"
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     yield f"Current date and time : {now}"
@@ -139,25 +127,30 @@ def searcher(hostname):
 
     db = Database(db_host, db_port)
     SWITCHES = db.show_switch_tables()
+    count = 0
     for sw in SWITCHES:
-        resp = db.select_entry_by_hostname(sw, hostname)
+        resp = db.select_entry_by_hostname(sw, hostname)  # BEWARE FOR SQL INJECTION
         if resp:
-            # Building a nice dict from this
-            cols = db.column_name_of(sw)
-            out = prettify_response(cols, resp)
-            print("----------------------------------------------")
-            print(f"Found on: {sw}", out)
-            print("----------------------------------------------")
-            return
-    print("Not found :(")
+            for output in resp:
+                # Building a nice dict from this
+                count += 1
+                cols = db.column_name_of(sw)
+                out = prettify_response(cols, output)
+                print("----------------------------------------------")
+                print(f"Found on: {sw}\n", out)
+                print("----------------------------------------------")
+    if count <= 0:
+        print("Not found... :(")
+
+
 
 
 # Just for the eyes!
 def prettify_response(col, data):
     out = {}
-    for index, entry in enumerate(data[0]):
+    for index, entry in enumerate(col):
         c = col[index][0]
-        v = data[0][index]
+        v = data[index]
         out[c] = v
     return out
 

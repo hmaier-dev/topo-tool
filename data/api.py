@@ -1,4 +1,3 @@
-import os.path
 import requests
 from requests import packages
 from requests.auth import HTTPBasicAuth
@@ -7,7 +6,7 @@ import cred
 
 
 class Clearpass:
-    def __init__(self, call_api=True):
+    def __init__(self):
         self.USER = cred.api_user
         self.PASSWORD = cred.api_password
         self.table_dir = "clearpass-tables"

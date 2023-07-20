@@ -157,7 +157,7 @@ class Database:
         return add
 
     def select_entry_by_hostname(self, switch, hostname):
-        sql = f"SELECT * FROM `{switch}` WHERE hostname='{hostname}' ;"
+        sql = f"SELECT * FROM `{switch}` WHERE hostname LIKE '%{hostname}%' ;"  # SQL-INJECTION possible...
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()
         return rows
