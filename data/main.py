@@ -3,7 +3,7 @@ import re
 import datetime
 import sys
 
-from data.db import Database
+from db import Database
 from discover import Discovery  # Connection to HP Switches
 from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
 
@@ -118,7 +118,25 @@ def scanner():
     yield f"Current date and time : {now}"
 
 def searcher():
-    pass
+    try:
+        # time.sleep(15)
+        print("Testing connection to the database...")
+        check(db_host, db_port)
+    except Exception as e:
+        print(f"Problem with db: {e}")
+        return
+    print("Connection to database successful!")
+
+    db = Database(db_host, db_port)
+    SWITCHES = db.show_switch_tables()
+    for sw in SWITCHES:
+        array = [sw]
+        rows = db.select_switch_data(array)
+        for entry in rows:
+            if entry["hostname"] == hostname:
+                return entry
+
+
 
 
 if __name__ == "__main__":
@@ -129,7 +147,9 @@ if __name__ == "__main__":
                 print(out)
             break
         elif sys.argv[x] == "--search":
-            searcher()
+            hostname = sys.argv[x+1]
+            out = searcher(hostname)
+            print(out)
             break
 
     # scanner()

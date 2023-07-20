@@ -146,3 +146,14 @@ class Database:
         name = switch[0]
         sql = f"UPDATE `{name}` SET hostname = '{hostname}' WHERE id = {id} ;"
         self.cursor.execute(sql)
+
+    def show_switch_tables(self):
+        add = []
+        sql = f"SHOW TABLES;"
+        self.cursor.execute(sql)
+        row = self.cursor.fetchone()
+        for entry in row:
+            if entry != "clearpass":
+                add.append(entry)
+        return add
+
