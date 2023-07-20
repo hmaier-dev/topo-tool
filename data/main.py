@@ -82,10 +82,6 @@ def scanner():
     yield "Setup tables..."
     db.setup_clearpass_table()
     db.setup_switch_tables(SWITCHES)
-    yield "Cleaning the database tables..."
-    for sw in SWITCHES:
-        db.truncate(sw[0])
-    db.truncate("clearpass")
 
     access = Discovery()
     max = len(SWITCHES)
@@ -94,6 +90,7 @@ def scanner():
         yield f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}..."
         dirty = access.get_mac_table(sw)
         clean = cleaning_mac_table(dirty)
+        db.truncate(sw[0])
         db.insert_switch_data(sw, clean)
         c += 1
 
@@ -101,6 +98,7 @@ def scanner():
     cp = Clearpass()
     xml = cp.call_api()
     json = cp.convert_to_json(xml)
+    db.truncate("clearpass")
     db.insert_api_data(json)
 
     yield "Searching MAC + Hostname pairs..."
