@@ -130,8 +130,7 @@ class Database:
         return rows
 
     def select_switch_data(self, switch):
-        name = switch[0]
-        sql = f"SELECT * FROM `{name}` ;"
+        sql = f"SELECT * FROM `{switch}` ;"
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()
         return rows

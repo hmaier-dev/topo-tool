@@ -83,17 +83,6 @@ def scanner():
     db.setup_clearpass_table()
     db.setup_switch_tables(SWITCHES)
 
-    access = Discovery()
-    max = len(SWITCHES)
-    c = 1
-    for sw in SWITCHES:
-        yield f"[{c}/{max}] Connecting to {sw[1]} with {sw[0]}..."
-        dirty = access.get_mac_table(sw)
-        clean = cleaning_mac_table(dirty)
-        db.truncate(sw[0])
-        db.insert_switch_data(sw, clean)
-        c += 1
-
     yield "Connecting to the clearpass api..."
     cp = Clearpass()
     xml = cp.call_api()
@@ -101,17 +90,40 @@ def scanner():
     db.truncate("clearpass")
     db.insert_api_data(json)
 
-    yield "Searching MAC + Hostname pairs..."
+    access = Discovery()
+    max = len(SWITCHES)
+    c = 1
     for sw in SWITCHES:
-        sw_data = db.select_switch_data(sw)
+        name = sw[0]
+        ip = sw[1]
+        yield f"[{c}/{max}] Connecting to {ip} a.k.a {name}..."
+        dirty = access.get_mac_table(sw)  # Connecting to a single access switch
+        clean = cleaning_mac_table(dirty)
+        db.truncate(name)
+        db.insert_switch_data(sw, clean)  # Saving clean mac-table
+        sw_data = db.select_switch_data(name)
+        yield "Searching MAC + Hostname pairs..."
         for entry in sw_data:
             id = entry[0]
             mac = entry[2]
             mac = mac.replace(":", "")
-            hostname = db.select_hostname_by_mac(mac)
+            hostname = db.select_hostname_by_mac(mac)  # Calls the Clearpass table
             if hostname is not None:
                 db.update_hostname_by_id(hostname[0], id, sw)
-                yield f"{hostname} -> {mac}"
+                yield f"{hostname[0]} -> {mac}"
+        c += 1
+
+
+    # for sw in SWITCHES:
+    #     sw_data = db.select_switch_data(sw)
+    #     for entry in sw_data:
+    #         id = entry[0]
+    #         mac = entry[2]
+    #         mac = mac.replace(":", "")
+    #         hostname = db.select_hostname_by_mac(mac)  # Calls the Clearpass table
+    #         if hostname is not None:
+    #             db.update_hostname_by_id(hostname[0], id, sw)
+    #             yield f"{hostname[0]} -> {mac}"
 
     yield "Scanning finished!"
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -120,24 +132,22 @@ def scanner():
 
 def searcher(hostname):
     try:
-        # time.sleep(15)
-        print("Testing connection to the database...")
         check(db_host, db_port)
     except Exception as e:
         print(f"Problem with db: {e}")
         return
-    print("Connection to database successful!")
 
     db = Database(db_host, db_port)
     SWITCHES = db.show_switch_tables()
     for sw in SWITCHES:
         resp = db.select_entry_by_hostname(sw, hostname)
         if resp:
-            print(f"Found on: {sw}")
             # Building a nice dict from this
             cols = db.column_name_of(sw)
             out = prettify_response(cols, resp)
-            print(out)
+            print("----------------------------------------------")
+            print(f"Found on: {sw}", out)
+            print("----------------------------------------------")
             return
     print("Not found :(")
 
