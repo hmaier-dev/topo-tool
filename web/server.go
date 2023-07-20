@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 )
 
 func main() {
@@ -24,9 +23,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
-	for _, element := range [100]int{} {
-		fmt.Fprintf(w, "%d", element)
-		time.Sleep(1000000)
+	for index, _ := range [5]int{} {
+		_, err := fmt.Fprintf(w, "%d \n", index)
+		if err != nil {
+			return
+		}
+
 	}
 
 }
