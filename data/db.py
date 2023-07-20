@@ -151,9 +151,22 @@ class Database:
         add = []
         sql = f"SHOW TABLES;"
         self.cursor.execute(sql)
-        row = self.cursor.fetchone()
-        for entry in row:
-            if entry != "clearpass":
-                add.append(entry)
+        rows = self.cursor.fetchall()
+        for entry in rows:
+            if entry[0] != "clearpass":
+                add.append(entry[0])
         return add
+
+    def select_entry_by_hostname(self, switch, hostname):
+        sql = f"SELECT * FROM `{switch}` WHERE hostname='{hostname}' ;"
+        self.cursor.execute(sql)
+        rows = self.cursor.fetchall()
+        return rows
+
+    def column_name_of(self, table):
+        sql = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' ;"
+        self.cursor.execute(sql)
+        row = self.cursor.fetchall()
+        return row
+
 

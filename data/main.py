@@ -74,7 +74,7 @@ def scanner():
         yield "Testing connection to the database..."
         check(db_host, db_port)
     except Exception as e:
-        yield(f"Problem with db: {e}")
+        yield (f"Problem with db: {e}")
         return
 
     yield "Connection to database successful!"
@@ -117,7 +117,8 @@ def scanner():
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     yield f"Current date and time : {now}"
 
-def searcher():
+
+def searcher(hostname):
     try:
         # time.sleep(15)
         print("Testing connection to the database...")
@@ -130,26 +131,37 @@ def searcher():
     db = Database(db_host, db_port)
     SWITCHES = db.show_switch_tables()
     for sw in SWITCHES:
-        array = [sw]
-        rows = db.select_switch_data(array)
-        for entry in rows:
-            if entry["hostname"] == hostname:
-                return entry
+        resp = db.select_entry_by_hostname(sw, hostname)
+        if resp:
+            print(f"Found on: {sw}")
+            # Building a nice dict from this
+            cols = db.column_name_of(sw)
+            out = prettify_response(cols, resp)
+            print(out)
+            return
+    print("Not found :(")
 
 
+# Just for the eyes!
+def prettify_response(col, data):
+    out = {}
+    for index, entry in enumerate(data[0]):
+        c = col[index][0]
+        v = data[0][index]
+        out[c] = v
+    return out
 
 
 if __name__ == "__main__":
     y = len(sys.argv)
-    for x in range(1,y):
+    for x in range(1, y):
         if sys.argv[x] == "--scanner":
             for out in scanner():  # generator object
                 print(out)
             break
         elif sys.argv[x] == "--search":
-            hostname = sys.argv[x+1]
-            out = searcher(hostname)
-            print(out)
+            hostname = sys.argv[x + 1]
+            searcher(hostname)
             break
 
     # scanner()
