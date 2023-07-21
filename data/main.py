@@ -6,28 +6,13 @@ import sys
 from db import Database
 from discover import Discovery  # Connection to HP Switches
 from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
+from switches import SWITCHES_LIST
 
-SWITCHES = [
-    ("SW_A-Nord", "192.168.132.125"),
-    ("SW_A-Sued", "192.168.132.126"),
-    ("SW_C-Nord-Core", "192.168.132.120"),
-    ("SW_C-Nord", "192.168.132.121"),
-    ("SW_C-Sued", "192.168.132.122"),
-    ("SW_B", "192.168.132.132"),
-    ("SW_R", "192.168.132.141"),
-    ("SW_R2", "192.168.132.142"),
-    ("SW_D", "192.168.132.127"),
-    ("SW_E1", "192.168.132.138"),
-    ("SW_E2", "192.168.132.123"),
-    ("SW_F", "192.168.132.202"),
-    ("SW_G", "192.168.132.146"),
-    ("SW_N1", "192.168.132.134"),
-    # ("SW_N2", "192.168.132.144"), currently not reachable
-    ("SW_WS", "192.168.132.130"),
-    ("SW_KMS", "192.168.132.128"),
-    # ("SW_P", "192.168.132.136"), 1/0/28 set as uplink
-    # ("SW_A121", "192.168.132.131"), 1/0/24 set as uplink
-]
+SWITCHES = SWITCHES_LIST  # importing a list containing switch_name + ip
+# list = [
+#        (<name>,<ip>),
+#        (<name>,<ip>),
+#        ]
 
 db_host = "localhost"
 # db_host = "db"
@@ -141,8 +126,6 @@ def searcher(hostname):
                 print("----------------------------------------------")
     if count <= 0:
         print("Not found... :(")
-
-
 
 
 # Just for the eyes!

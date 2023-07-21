@@ -1,4 +1,4 @@
-import cred
+import cred  # Create a cred.py in this folder with variable containing needed credentials (db_user, db_password)
 import mariadb
 
 
