@@ -30,7 +30,7 @@ class Clearpass:
         tmp_hostname = None
         tmp_mac = None
         print("Filtering xml data into json...")
-        for elem in tree.iter():
+        for elem in tree.iter():  # Getting hostname + mac this way, is not very secure...
             if "hostname" in elem.attrib:
                 tmp_hostname = elem.attrib["hostname"]
             if "macAddress" in elem.attrib:
