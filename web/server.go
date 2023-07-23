@@ -12,13 +12,16 @@ var conn *sql.DB
 
 func main() {
 
-	var hostname = "azt-4816"
+	var _ = "azt-4816"
 
 	conn = dbConnect()
-	var switchNames []string = switchTableNames()
-	for _, sw := range switchNames {
-		selectRowByHostname(sw, hostname)
-	}
+	// var switchNames []string = switchTableNames()
+	// for _, sw := range switchNames {
+	// selectRowByHostname(sw, hostname)
+	// }
+
+	getQuery(conn, "select * from `sw_b`;")
+
 	conn.Close()
 }
 
@@ -47,66 +50,38 @@ func dbConnect() *sql.DB {
 	return conn
 }
 
-func selectAllFromClearpass() {
-	query, err := conn.Prepare("SELECT *  FROM `clearpass`;")
-	rows, err := query.Query()
+func getQuery(conn *sql.DB, query string) []string {
+	rows, err := conn.Query(query)
 	if err != nil {
-		fmt.Println("query.Query", err)
+		fmt.Printf("problems with query: %v \n", err)
 	}
-	// iterator which yields the next row
+	cols, _ := rows.Columns()
+	// [row][values] -> e.g. row: [[value][value][value]]
+
+	rawResult := make([][]byte, len(cols))
+	// singleRow := make([]string, len(cols))
+	// .Scan() needs []any as result type
+	dest := make([]interface{}, len(cols))
+
+	for i := range cols {
+		dest[i] = &rawResult[i]
+	}
+
 	for rows.Next() {
-		// declare variables to which Scan() can save the data to
-		var (
-			id       int
-			hostname string
-			mac      string
-		)
-		err := rows.Scan(&id, &hostname, &mac)
-		if err != nil {
-			return
+		rows.Scan(dest...)
+		for i, elem := range dest {
+			fmt.Printf("%v -> %v \n", i, elem)
 		}
-		fmt.Printf("%v, %v, %v \n", id, hostname, mac)
+
 	}
+
+	return make([]string, 0)
 }
 
-func selectRowByHostname(switchName string, hostname string) {
-	stmt, _ := conn.Prepare("SELECT id, interface_name, mac, hostname, vlan, stack , interface_num FROM `?` WHERE hostname = ? ;")
-	rows, err := stmt.Query(switchName, hostname)
-
-	if err == nil {
-		fmt.Println("stmt.Query", err)
-	}
-	//columns, _ := rows.ColumnTypes()
-	//response_array := make([]string, len(columns))
-	//iterator which yields the next row
-	for rows.Next() {
-		// declare variables to which Scan() can save the data to
-		var sr switchRow
-		rows.Scan(&sr.id, &sr.interfaceName, &sr.mac, &sr.hostname, &sr.vlan, &sr.stack, &sr.interfaceNum)
-		fmt.Printf("%v", sr)
-
-	}
-}
-
-func switchTableNames() []string {
-	query, _ := conn.Prepare("SHOW TABLES;")
-	rows, _ := query.Query()
-	columns, _ := rows.ColumnTypes()
-	switchNames := make([]string, len(columns))
-	var tableName string
-	for rows.Next() {
-		rows.Scan(&tableName)
-		if tableName != "clearpass" {
-			switchNames = append(switchNames, tableName)
-		}
-	}
-	return switchNames
-}
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
 	fmt.Println(r)
-
 }
