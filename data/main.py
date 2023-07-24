@@ -38,7 +38,11 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
             # Step 2
             # Resolving num of stack and interface
             matches = re.findall(r'\d+', interface_name)
-            sort_helper = matches[0] + matches[2]  # combine two strings
+            ## Little Hack to enable sorting
+            if int(matches[2]) < 10:
+                sort_helper = matches[0] + "0" + matches[2]
+            else:
+                sort_helper = matches[0] + matches[2]
             add = {"mac": mac,  # string
                    "interface_name": interface_name,  # string
                    "vlan": vlan,  # int
@@ -50,6 +54,7 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
             tmp_list.append(add)
     # Step 4
     # returning the list sorted by the sort_helper key
+    # TODO: rewrite the sorting, because 4/0/4 comes before 3/0/12
     return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
 
