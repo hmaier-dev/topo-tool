@@ -91,7 +91,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var path = filepath.Join(wd, "web", "static", "index.html")
+	// var path = filepath.Join(wd, "web", "static", "index.html")
+	var path = filepath.Join(wd, "static", "index.html")
 	tmpl := template.Must(template.ParseFiles(path))
 	err = tmpl.Execute(w, struct{ Data []Row }{Data: table})
 	if err != nil {
