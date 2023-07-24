@@ -85,7 +85,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
-	dbSlice := getQuery(conn, "SELECT * FROM `sw_b`;")
+	dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
 	table := makeTableStruct(dbSlice)
 	wd, err := os.Getwd()
 	if err != nil {
