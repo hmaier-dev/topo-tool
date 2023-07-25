@@ -52,9 +52,11 @@ func main() {
 // ----------------------------------------------------
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	var hostname string
-	var query string
 	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal("cannot get working directory", err)
+	}
+	// POST
 	if r.Method == http.MethodPost {
 		fmt.Println("POST received...")
 		err := r.ParseForm()
@@ -62,30 +64,38 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
 
-		hostname = r.Form.Get("hostname")
-		fmt.Printf("%v", hostname)
-		query = "select * from from `sw_a-sued` where hostname = %" + hostname + "% ;"
+		hostname := r.Form.Get("hostname")
+		// fmt.Printf("String: %v \n", hostname)
+		query := "select * from `sw_b` where hostname LIKE '%" + hostname + "%' ;"
 
 		// Querying and formatting database-content
 		// dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
 		dbSlice := getQuery(conn, query)
+		fmt.Printf("%v \n", dbSlice)
 		tableData := makeTableStruct(dbSlice)
+		fmt.Printf("%v \n", tableData)
 
 		var table = filepath.Join(wd, "static", "table.html")
 		tmpl, err := template.ParseFiles(table)
 		err = tmpl.Execute(w, struct{ Data []Row }{Data: tableData}) // write response to w
+		if err != nil {
+			log.Fatal("problem with executing the template ", err)
+		}
 	}
+	// GET
+	if r.Method == http.MethodGet {
+		//var path = filepath.Join(wd, "web", "static", "index.html")
+		var index = filepath.Join(wd, "static", "index.html")
+		tmpl, err := template.ParseFiles(index)
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			log.Fatal("problem with parsing the template ", err)
+		}
 
-	//var path = filepath.Join(wd, "web", "static", "index.html")
-	var index = filepath.Join(wd, "static", "index.html")
-	tmpl, err := template.ParseFiles(index)
-	err = tmpl.Execute(w, nil)
-	if err != nil {
-		log.Fatal("problem with parsing the template ", err)
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Fatal("problem with executing the template ", err)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Fatal("problem with executing the template ", err)
+		}
 	}
 
 }
@@ -112,7 +122,7 @@ func dbConnect() *sql.DB {
 func getQuery(conn *sql.DB, query string) [][]string {
 	rows, err := conn.Query(query)
 	if err != nil {
-		fmt.Printf("problems with query: %v \n", err)
+		log.Fatal("problems with query", err)
 	}
 	cols, _ := rows.Columns()
 
