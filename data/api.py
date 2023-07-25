@@ -29,20 +29,25 @@ class Clearpass:
         # tree = ET.parse(self.path_xml).getroot()
         tmp_hostname = None
         tmp_mac = None
+        tmp_ip = None
         print("Filtering xml data into json...")
         for elem in tree.iter():  # Getting hostname + mac this way, is not very secure...
             if "hostname" in elem.attrib:
                 tmp_hostname = elem.attrib["hostname"]
             if "macAddress" in elem.attrib:
                 tmp_mac = elem.attrib["macAddress"]
+            if "ipAddress" in elem.attrib:
+                tmp_ip = elem.attrib["ipAddress"]
 
             if tmp_hostname is not None and tmp_mac is not None:
                 add = {
                     "hostname": tmp_hostname,
-                    "mac": tmp_mac
+                    "mac": tmp_mac,
+                    "ip": tmp_ip
                 }
                 tmp_hostname = None
                 tmp_mac = None
+                tmp_ip = None
                 # array.append(add)
                 self.data.append(add)
         return self.data

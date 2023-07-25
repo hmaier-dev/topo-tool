@@ -10,36 +10,47 @@ Main Class where All the good Stuff Happens
 
 
 class Discovery:
-    def __init__(self):
+    def __init__(self, switch):
         self.USERNAME = cred.sw_user
         self.PASSWORD = cred.sw_password
         self.table_dir = "switch-tables"
         self.mac_table = []
         # Name and IP of Switch
-        self.name = ""
-        self.ip = ""
-        #
-        # if not os.path.exists(self.table_dir):
-        #     os.makedirs(self.table_dir)
-
-    def get_mac_table(self, switch):
-        """
-        Takes tuple with string: name and string: ip
-        """
         try:
             self.name = switch[0]
             self.ip = switch[1]
         except Exception as e:
             print(f"No name or ip given: {e}")
-        driver = get_network_driver("h3c_comware")
+        #
+        # if not os.path.exists(self.table_dir):
+        #     os.makedirs(self.table_dir)
+        self.driver = get_network_driver("h3c_comware")
+        self.driver = self.driver(self.ip, self.USERNAME, self.PASSWORD, timeout=5)
+        self.driver.open()
+
+    def get_mac_table(self):
+        """
+        Takes tuple with string: name and string: ip
+        """
         mac = []
         try:
-            driver = driver(self.ip, self.USERNAME, self.PASSWORD, timeout=5)
-            driver.open()
-            mac = driver.get_mac_address_table()
+            mac = self.driver.get_mac_address_table()
         except Exception as e:
             print(f"Problems access switch: {e}")
         return mac
+
+    def get_arp_table(self):
+        """
+        Takes tuple with string: name and string: ip
+        """
+        arp = []
+        try:
+            arp = self.driver.get_arp_table()
+        except Exception as e:
+            print(f"Problems pulling the arp table: {e}")
+        return arp
+
+
         # mac = str(mac)
         # # Formatting the output-string to be useful for json
         # mac = mac.replace("\'", "\"")

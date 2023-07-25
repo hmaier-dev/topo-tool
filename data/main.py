@@ -54,7 +54,6 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
             tmp_list.append(add)
     # Step 4
     # returning the list sorted by the sort_helper key
-    # TODO: rewrite the sorting, because 4/0/4 comes before 3/0/12
     return sorted(tmp_list, key=lambda x: (x["sort_helper"]))
 
 
@@ -70,37 +69,41 @@ def scanner():
     yield "Connection to database successful!"
     db = Database(db_host, db_port)
     yield "Setup tables..."
+    db.drop(SWITCHES)
     db.setup_clearpass_table()
     db.setup_switch_tables(SWITCHES)
 
     yield "Connecting to the clearpass api..."
     cp = Clearpass()
     xml = cp.call_api()
-    json = cp.convert_to_json(xml)
+    json = cp.convert_to_json(xml)  # constructs json with hostname + mac + ip
     db.truncate("clearpass")
     db.insert_api_data(json)
 
-    access = Discovery()
     max = len(SWITCHES)
     c = 1
     for sw in SWITCHES:
         name = sw[0]
         ip = sw[1]
         yield f"[{c}/{max}] Connecting to {ip} a.k.a {name}..."
-        dirty = access.get_mac_table(sw)  # Connecting to a single access switch
+        access = Discovery(sw)
+        dirty = access.get_mac_table()  # Connecting to a single access switch
         clean = cleaning_mac_table(dirty)
         db.truncate(name)
         db.insert_switch_data(sw, clean)  # Saving clean mac-table
         sw_data = db.select_switch_data(name)
         yield "Searching MAC + Hostname pairs..."
-        for entry in sw_data:
+        for entry in sw_data:  # Iterating through every switch
             id = entry[0]
             mac = entry[2]
             mac = mac.replace(":", "")
             hostname = db.select_hostname_by_mac(mac)  # Calls the Clearpass table
+            ip = db.select_ip_by_mac(mac)
             if hostname is not None:
-                db.update_hostname_by_id(hostname[0], id, sw)
-                yield f"{hostname[0]} -> {mac}"
+                db.update_hostname_by_id(hostname[0], id, sw[0])
+            if ip is not None:
+                db.update_ip_by_id(ip[0], id, sw[0])
+            # yield f"{hostname[0] + ip[0]} -> {mac}"
         c += 1
 
     yield "Scanning finished!"

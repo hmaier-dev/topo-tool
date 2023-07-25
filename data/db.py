@@ -39,6 +39,7 @@ class Database:
             f"`interface_name` char(50) DEFAULT NULL,"
             f"`mac` char(50) DEFAULT NULL, "
             f"`hostname` char(50) DEFAULT NULL,"
+            f"`ip` char(16) DEFAULT NULL,"
             f"`vlan` int DEFAULT NULL,"
             f"`stack` int DEFAULT NULL,"
             f"`interface_num` int DEFAULT NULL,"
@@ -58,6 +59,7 @@ class Database:
             f"`id` int NOT NULL AUTO_INCREMENT,"
             f"`hostname` char(50) DEFAULT NULL,"
             f"`mac` char(50) DEFAULT NULL, "
+            f"`ip` char(16) DEFAULT NULL, "
             f" PRIMARY KEY (`id`)"
             f") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Organized API Data ';"
         )
@@ -98,7 +100,6 @@ class Database:
             s = entry["stack"]
             int_num = entry["interface_num"]
             sql = cmd(name, int_name, m, v, s, int_num)
-            print(sql)
             try:
                 resp = self.cursor.execute(sql)
             except mariadb.Error as e:
@@ -106,18 +107,18 @@ class Database:
 
     # Data containing Hostname + Mac combo
     def insert_api_data(self, json):
-        cmd = lambda hostname, mac: (
+        cmd = lambda hostname, mac, ip: (
             f"INSERT INTO `clearpass` "
-            f" (hostname, mac)"
+            f" (hostname, mac, ip)"
             f" VALUES "
-            f"('{hostname}', '{mac}') ;"
+            f"('{hostname}', '{mac}', '{ip}') ;"
 
         )
         for entry in json:
             h = entry["hostname"]
             m = entry["mac"]
-            sql = cmd(h, m)
-            print(sql)
+            i = entry["ip"]
+            sql = cmd(h, m, i)
             try:
                 resp = self.cursor.execute(sql)
             except mariadb.Error as e:
@@ -141,9 +142,18 @@ class Database:
         row = self.cursor.fetchone()
         return row
 
-    def update_hostname_by_id(self, hostname, id, switch):
-        name = switch[0]
-        sql = f"UPDATE `{name}` SET hostname = '{hostname}' WHERE id = {id} ;"
+    def select_ip_by_mac(self, mac):
+        sql = f"SELECT ip FROM `clearpass` WHERE mac = ? "
+        self.cursor.execute(sql, (mac,))
+        row = self.cursor.fetchone()
+        return row
+
+    def update_hostname_by_id(self, hostname, id, switch_name):
+        sql = f"UPDATE `{switch_name}` SET hostname = '{hostname}' WHERE id = {id} ;"
+        self.cursor.execute(sql)
+
+    def update_ip_by_id(self, ip, id, switch_name):
+        sql = f"UPDATE `{switch_name}` SET ip = '{ip}' WHERE id = {id} ;"
         self.cursor.execute(sql)
 
     def show_switch_tables(self):
