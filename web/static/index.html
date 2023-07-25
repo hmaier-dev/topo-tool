@@ -14,35 +14,14 @@
       <input class="search-bar"
              hx-post="/"
              hx-trigger="keyup changed delay:500ms"
+             hx-target=".table-location"
              placeholder="Search..."
              name="hostname"
       >
     </div>
-    <table class="table">
-      <tr>
-        <th>ID</th>
-        <th>Interface Name</th>
-        <th>MAC</th>
-        <th>Hostname</th>
-        <th>IP-Address</th>
-        <th>Vlan</th>
-        <th>Stack</th>
-        <th>Interface Num</th>
-      </tr>
-      {{ range .Data }}
-      <tr>
-        <td>{{ .Id }}</td>
-        <td>{{ .InterfaceName }}</td>
-        <td>{{ .Mac }}</td>
-        <td>{{ .Hostname }}</td>
-        <td>{{ .Ip }}</td>
-        <td>{{ .Vlan }}</td>
-        <td>{{ .Stack }}</td>
-        <td>{{ .InterfaceNum }}</td>
-      </tr>
-      {{ end }}
-    </table>
+    <div class="table-location">
 
+    </div>
 
   </body>
 </html>

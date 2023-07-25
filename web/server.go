@@ -52,6 +52,8 @@ func main() {
 // ----------------------------------------------------
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	var hostname string
+	var query string
 	if r.Method == http.MethodPost {
 		fmt.Println("POST received...")
 		err := r.ParseForm()
@@ -59,11 +61,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
 
-		hostname := r.Form.Get("hostname")
+		hostname = r.Form.Get("hostname")
 		fmt.Printf("%v", hostname)
+		query = "select * from from `sw_a-sued` where hostname = %" + hostname + "% ;"
 	}
 
-	dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
+	// dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
+	dbSlice := getQuery(conn, query)
 	table := makeTableStruct(dbSlice)
 
 	wd, err := os.Getwd()
@@ -148,14 +152,22 @@ func makeTableStruct(array [][]string) []Row {
 	var table []Row
 	for _, entry := range array {
 		row := Row{
+			// Id:            entry[0],
+			// InterfaceName: entry[1],
+			// Mac:           entry[2],
+			// Hostname:      entry[3],
+			// Ip:            entry[4],
+			// Vlan:          entry[5],
+			// Stack:         entry[6],
+			// InterfaceNum:  entry[7],
+
 			Id:            entry[0],
 			InterfaceName: entry[1],
 			Mac:           entry[2],
 			Hostname:      entry[3],
-			Ip:            entry[4],
-			Vlan:          entry[5],
-			Stack:         entry[6],
-			InterfaceNum:  entry[7],
+			Vlan:          entry[4],
+			Stack:         entry[5],
+			InterfaceNum:  entry[6],
 		}
 		table = append(table, row)
 	}
