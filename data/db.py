@@ -173,7 +173,7 @@ class Database:
         return rows
 
     def column_name_of(self, table):
-        sql = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' ;"
+        sql = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}' ORDER BY ORDINAL_POSITION ;"
         self.cursor.execute(sql)
         row = self.cursor.fetchall()
         return row

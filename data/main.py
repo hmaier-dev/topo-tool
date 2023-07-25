@@ -92,7 +92,6 @@ def scanner():
         db.truncate(name)
         db.insert_switch_data(sw, clean)  # Saving clean mac-table
         sw_data = db.select_switch_data(name)
-        yield "Searching MAC + Hostname pairs..."
         for entry in sw_data:  # Iterating through every switch
             id = entry[0]
             mac = entry[2]
