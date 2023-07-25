@@ -151,6 +151,7 @@ func getQuery(conn *sql.DB, query string) [][]string {
 // Note: to export(public) a variable, it must begin with a Uppercase Letter
 type Row struct {
 	Id            string
+	SwitchName    string
 	InterfaceName string
 	Mac           string
 	Hostname      string
@@ -165,6 +166,7 @@ func makeTableStruct(array [][]string) []Row {
 	for _, entry := range array {
 		row := Row{
 			// Id:            entry[0],
+			// SwitchName     sw_name,
 			// InterfaceName: entry[1],
 			// Mac:           entry[2],
 			// Hostname:      entry[3],
