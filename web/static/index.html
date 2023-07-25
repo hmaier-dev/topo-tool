@@ -4,23 +4,26 @@
     <title>Topology Tool</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-<!--    <link href="style.css" rel="stylesheet">-->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="static/style.css" rel="stylesheet" type="text/css">
     <script src="../js/htmx.min.js"></script>
   </head>
   <body>
     <div>
+      <input  >
+    </div>
+    <div>
       <p>Hello World!</p>
     </div>
-    <table class="table table-striped">
+    <table class="table">
       <tr>
-        <th>id</th>
-        <th>interface name</th>
-        <th>mac</th>
-        <th>hostname</th>
-        <th>vlan</th>
-        <th>stack</th>
-        <th>interface num</th>
+        <th>ID</th>
+        <th>Interface Name</th>
+        <th>MAC</th>
+        <th>Hostname</th>
+        <th>IP-Address</th>
+        <th>Vlan</th>
+        <th>Stack</th>
+        <th>Interface Num</th>
       </tr>
       {{ range .Data }}
       <tr>
@@ -28,6 +31,7 @@
         <td>{{ .InterfaceName }}</td>
         <td>{{ .Mac }}</td>
         <td>{{ .Hostname }}</td>
+        <td>{{ .Ip }}</td>
         <td>{{ .Vlan }}</td>
         <td>{{ .Stack }}</td>
         <td>{{ .InterfaceNum }}</td>

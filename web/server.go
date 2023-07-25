@@ -25,7 +25,10 @@ func main() {
 			switchNames = append(switchNames[:i], switchNames[i+1:]...) // cut out clearpass
 		}
 	}
-
+	// thx for this chat-gpt
+	// Register the route for serving the CSS file
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
@@ -37,6 +40,42 @@ func main() {
 		log.Fatal("cannot close the database-connection ", err)
 	}
 }
+
+// ----------------------------------------------------
+// Web-Server section
+//
+// ----------------------------------------------------
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
+	table := makeTableStruct(dbSlice)
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	//var path = filepath.Join(wd, "web", "static", "index.html")
+	var path = filepath.Join(wd, "static", "index.html")
+	tmpl, err := template.ParseFiles(path)
+	if err != nil {
+		log.Fatal("problem with parsing the template ", err)
+	}
+	err = tmpl.Execute(w, struct{ Data []Row }{Data: table}) // write response to w
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Fatal("problem with executing the template ", err)
+	}
+
+}
+
+// ----------------------------------------------------
+// Section for DB-fun
+//
+// ----------------------------------------------------
 
 func dbConnect() *sql.DB {
 	var user = "www-data"
@@ -80,27 +119,6 @@ func getQuery(conn *sql.DB, query string) [][]string {
 	return allRows
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-	dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
-	table := makeTableStruct(dbSlice)
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// var path = filepath.Join(wd, "web", "static", "index.html")
-	var path = filepath.Join(wd, "static", "index.html")
-	tmpl := template.Must(template.ParseFiles(path))
-	err = tmpl.Execute(w, struct{ Data []Row }{Data: table})
-	if err != nil {
-		log.Fatal("problem with executing the template ", err)
-	}
-	//io.WriteString(w, "Hello!")
-}
-
 // single switch-table row
 // Note: to export(public) a variable, it must begin with a Uppercase Letter
 type Row struct {
@@ -108,6 +126,7 @@ type Row struct {
 	InterfaceName string
 	Mac           string
 	Hostname      string
+	Ip            string
 	Vlan          string
 	Stack         string
 	InterfaceNum  string
@@ -121,9 +140,10 @@ func makeTableStruct(array [][]string) []Row {
 			InterfaceName: entry[1],
 			Mac:           entry[2],
 			Hostname:      entry[3],
-			Vlan:          entry[4],
-			Stack:         entry[5],
-			InterfaceNum:  entry[6],
+			Ip:            entry[4],
+			Vlan:          entry[5],
+			Stack:         entry[6],
+			InterfaceNum:  entry[7],
 		}
 		table = append(table, row)
 	}
