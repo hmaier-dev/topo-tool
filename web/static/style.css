@@ -1,11 +1,30 @@
 body{
-    background-color: blue;
+}
+
+.search-div{
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-bar{
+    display: block; /* Make the input element a block-level element */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin: 1rem auto; /*Center horizontally*/
 }
 
 .table{
+    background-color: #aca8a8;
     margin-left: auto;
     margin-right: auto;
 }
 tr:nth-child(even) {
     background-color: #f2f2f2;
+}
+.table td{
+    padding: 0.5rem;
+    text-align: center;
 }

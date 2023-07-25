@@ -15,19 +15,24 @@ var conn *sql.DB
 
 func main() {
 
-	var _ = "azt-4816"
-
 	conn = dbConnect()
-	var switchNames [][]string = getQuery(conn, "SHOW TABLES;")
-	// clearpass is not a switch
-	for i, sw := range switchNames {
-		if sw[0] == "clearpass" {
-			switchNames = append(switchNames[:i], switchNames[i+1:]...) // cut out clearpass
-		}
-	}
-	// thx for this chat-gpt
+
+	//var switchNames [][]string = getQuery(conn, "SHOW TABLES;")
+	//// clearpass is not a switch
+	//for i, sw := range switchNames {
+	//	if sw[0] == "clearpass" {
+	//		switchNames = append(switchNames[:i], switchNames[i+1:]...) // cut out clearpass
+	//	}
+	//}
+
+	// thx for this, chat-gpt
 	// Register the route for serving the CSS file
+	// Use-Case for this:
+	// You can get content from "<public_path>/<content>" by removing
+	// <public_path> from <content> (with StripPrefix), and setting FileServer to your <private_path>
+	// e.g. http.Handle("/my_public_path/", http.StripPrefix("/my_public_path/", http.FileServer(http.Dir("secret_location"))))
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
 	err := http.ListenAndServe("localhost:8080", nil)
@@ -47,13 +52,20 @@ func main() {
 // ----------------------------------------------------
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
+	if r.Method == http.MethodPost {
+		fmt.Println("POST received...")
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
+		}
+
+		hostname := r.Form.Get("hostname")
+		fmt.Printf("%v", hostname)
 	}
 
 	dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
 	table := makeTableStruct(dbSlice)
+
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)

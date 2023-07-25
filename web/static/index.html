@@ -4,15 +4,19 @@
     <title>Topology Tool</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--    take your go-file as base or root for -->
     <link href="static/style.css" rel="stylesheet" type="text/css">
-    <script src="../js/htmx.min.js"></script>
+    <script src="js/htmx.min.js"></script>
   </head>
   <body>
-    <div>
-      <input  >
-    </div>
-    <div>
-      <p>Hello World!</p>
+    <div class="search-div">
+      <label>Search for a hostname:</label>
+      <input class="search-bar"
+             hx-post="/"
+             hx-trigger="keyup changed delay:500ms"
+             placeholder="Search..."
+             name="hostname"
+      >
     </div>
     <table class="table">
       <tr>
