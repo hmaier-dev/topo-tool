@@ -54,6 +54,7 @@ func main() {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var hostname string
 	var query string
+	wd, err := os.Getwd()
 	if r.Method == http.MethodPost {
 		fmt.Println("POST received...")
 		err := r.ParseForm()
@@ -64,23 +65,24 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		hostname = r.Form.Get("hostname")
 		fmt.Printf("%v", hostname)
 		query = "select * from from `sw_a-sued` where hostname = %" + hostname + "% ;"
+
+		// Querying and formatting database-content
+		// dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
+		dbSlice := getQuery(conn, query)
+		tableData := makeTableStruct(dbSlice)
+
+		var table = filepath.Join(wd, "static", "table.html")
+		tmpl, err := template.ParseFiles(table)
+		err = tmpl.Execute(w, struct{ Data []Row }{Data: tableData}) // write response to w
 	}
 
-	// dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
-	dbSlice := getQuery(conn, query)
-	table := makeTableStruct(dbSlice)
-
-	wd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
 	//var path = filepath.Join(wd, "web", "static", "index.html")
-	var path = filepath.Join(wd, "static", "index.html")
-	tmpl, err := template.ParseFiles(path)
+	var index = filepath.Join(wd, "static", "index.html")
+	tmpl, err := template.ParseFiles(index)
+	err = tmpl.Execute(w, nil)
 	if err != nil {
 		log.Fatal("problem with parsing the template ", err)
 	}
-	err = tmpl.Execute(w, struct{ Data []Row }{Data: table}) // write response to w
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Fatal("problem with executing the template ", err)
