@@ -28,3 +28,7 @@ tr:nth-child(even) {
     padding: 0.5rem;
     text-align: center;
 }
+
+.table .col-hostname{
+    width: 300px;
+}

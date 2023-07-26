@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,17 +12,12 @@ import _ "github.com/go-sql-driver/mysql"
 
 var conn *sql.DB
 
+func init() {
+
+}
+
 func main() {
-
 	conn = dbConnect()
-
-	//var switchNames [][]string = getQuery(conn, "SHOW TABLES;")
-	//// clearpass is not a switch
-	//for i, sw := range switchNames {
-	//	if sw[0] == "clearpass" {
-	//		switchNames = append(switchNames[:i], switchNames[i+1:]...) // cut out clearpass
-	//	}
-	//}
 
 	// thx for this, chat-gpt
 	// Register the route for serving the CSS file
@@ -53,49 +47,38 @@ func main() {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	wd, err := os.Getwd()
+	var static = filepath.Join(wd, "static")
+	var index = filepath.Join(static, "index.html")
+	var table = filepath.Join(static, "table.html")
 	if err != nil {
 		log.Fatal("cannot get working directory", err)
 	}
-	// POST
+
+	// POST-Request
 	if r.Method == http.MethodPost {
-		fmt.Println("POST received...")
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
-
 		hostname := r.Form.Get("hostname")
-		// fmt.Printf("String: %v \n", hostname)
-		query := "select * from `sw_b` where hostname LIKE '%" + hostname + "%' ;"
-
-		// Querying and formatting database-content
-		// dbSlice := getQuery(conn, "SELECT * FROM `sw_c-sued`;")
-		dbSlice := getQuery(conn, query)
-		fmt.Printf("%v \n", dbSlice)
-		tableData := makeTableStruct(dbSlice)
-		fmt.Printf("%v \n", tableData)
-
-		var table = filepath.Join(wd, "static", "table.html")
+		tableData := searchHostname(hostname)
+		if tableData == nil || len(tableData) == 0 { // returning if there is no sufficient tableData
+			return
+		}
 		tmpl, err := template.ParseFiles(table)
 		err = tmpl.Execute(w, struct{ Data []Row }{Data: tableData}) // write response to w
 		if err != nil {
 			log.Fatal("problem with executing the template ", err)
 		}
-	}
-	// GET
-	if r.Method == http.MethodGet {
-		//var path = filepath.Join(wd, "web", "static", "index.html")
-		var index = filepath.Join(wd, "static", "index.html")
+	} else {
+		// Loading the index.html without any data
 		tmpl, err := template.ParseFiles(index)
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			log.Fatal("problem with parsing the template ", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Fatal("problem with parsing the index template ", err)
 		}
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			log.Fatal("problem with executing the template ", err)
-		}
 	}
 
 }
@@ -147,11 +130,33 @@ func getQuery(conn *sql.DB, query string) [][]string {
 	return allRows
 }
 
-// single switch-table row
-// Note: to export(public) a variable, it must begin with a Uppercase Letter
+func searchHostname(h string) []Row {
+	var switchNames = getQuery(conn, "SHOW TABLES;")
+	for i, sw := range switchNames {
+		if sw[0] == "clearpass" { // clearpass is not a switch
+			switchNames = append(switchNames[:i], switchNames[i+1:]...) // cut out clearpass
+		}
+	}
+	// Get Query Response
+	var resp [][]string
+	var totalResp [][]string
+	for _, sw := range switchNames {
+		n := sw[0]
+		query := "Select * From `" + n + "` WHERE hostname LIKE '%" + h + "%';"
+		resp = getQuery(conn, query) // response from a single table
+		for _, entry := range resp {
+			entry = append(entry, n) // append the slice with the SwitchName
+			totalResp = append(totalResp, entry)
+		}
+	}
+
+	return makeTableStruct(totalResp)
+}
+
+// Row single switch-table row
+// Note: to export(public) a variable, it must begin with an Uppercase Letter
 type Row struct {
 	Id            string
-	SwitchName    string
 	InterfaceName string
 	Mac           string
 	Hostname      string
@@ -159,29 +164,22 @@ type Row struct {
 	Vlan          string
 	Stack         string
 	InterfaceNum  string
+	SwitchName    string
 }
 
 func makeTableStruct(array [][]string) []Row {
 	var table []Row
 	for _, entry := range array {
 		row := Row{
-			// Id:            entry[0],
-			// SwitchName     sw_name,
-			// InterfaceName: entry[1],
-			// Mac:           entry[2],
-			// Hostname:      entry[3],
-			// Ip:            entry[4],
-			// Vlan:          entry[5],
-			// Stack:         entry[6],
-			// InterfaceNum:  entry[7],
-
 			Id:            entry[0],
 			InterfaceName: entry[1],
 			Mac:           entry[2],
 			Hostname:      entry[3],
-			Vlan:          entry[4],
-			Stack:         entry[5],
-			InterfaceNum:  entry[6],
+			Ip:            entry[4],
+			Vlan:          entry[5],
+			Stack:         entry[6],
+			InterfaceNum:  entry[7],
+			SwitchName:    entry[8],
 		}
 		table = append(table, row)
 	}

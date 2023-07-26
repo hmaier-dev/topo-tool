@@ -1,24 +1,26 @@
-    <table class="table">
-      <tr>
-        <th>ID</th>
-        <th>Interface Name</th>
-        <th>MAC</th>
-        <th>Hostname</th>
-        <th>IP-Address</th>
-        <th>Vlan</th>
-        <th>Stack</th>
-        <th>Interface Num</th>
-      </tr>
-      {{ range .Data }}
-      <tr>
-        <td>{{ .Id }}</td>
-        <td>{{ .InterfaceName }}</td>
-        <td>{{ .Mac }}</td>
-        <td>{{ .Hostname }}</td>
-        <td>{{ .Ip }}</td>
-        <td>{{ .Vlan }}</td>
-        <td>{{ .Stack }}</td>
-        <td>{{ .InterfaceNum }}</td>
-      </tr>
-      {{ end }}
-    </table>
+<table class="table">
+  <tr>
+    <th>ID</th>
+    <th>SwitchName</th>
+    <th>Interface Name</th>
+    <th>MAC</th>
+    <th class="col-hostname">Hostname</th>
+    <th>IP-Address</th>
+    <th>Vlan</th>
+    <th>Stack</th>
+    <th>Interface Num</th>
+  </tr>
+  {{ range .Data }}
+  <tr>
+    <td>{{ .Id }}</td>
+    <td>{{ .SwitchName }}</td>
+    <td>{{ .InterfaceName }}</td>
+    <td>{{ .Mac }}</td>
+    <td>{{ .Hostname }}</td>
+    <td>{{ .Ip }}</td>
+    <td>{{ .Vlan }}</td>
+    <td>{{ .Stack }}</td>
+    <td>{{ .InterfaceNum }}</td>
+  </tr>
+  {{ end }}
+</table>
