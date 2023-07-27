@@ -167,6 +167,8 @@ type Row struct {
 	SwitchName    string
 }
 
+// Converting the database-output
+// into a usable []struct-format
 func makeTableStruct(array [][]string) []Row {
 	var table []Row
 	for _, entry := range array {

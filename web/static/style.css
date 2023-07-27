@@ -32,3 +32,6 @@ tr:nth-child(even) {
 .table .col-hostname{
     width: 300px;
 }
+.table .col-switchname {
+   width: 90px;
+}
