@@ -1,6 +1,6 @@
 # topo-tool
 This tool pulls mac-addresses from a list of **HPE7-Comware-Switches** 
-and compares them with the mac-addresses on saved a **Aruba-Clearpass** (**N**etwork**A**ccess**C**ontrol).
+and compares them with those saved on a **Aruba-Clearpass** (**N**etwork**A**ccess**C**ontrol).
 
 To get data from the switches, the `napalm-h3c-comware` python-library is used. 
 For scraping the clearpass, the standard clearpass-api is used.
