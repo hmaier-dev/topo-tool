@@ -5,7 +5,8 @@ import sys
 
 from db import Database
 from discover import Discovery  # Connection to HP Switches
-from api import Clearpass  # Pulling hostname + mac from NAC (Network Access Control)
+# Pulling hostname + mac from NAC (Network Access Control)
+from api import Clearpass
 from switches import SWITCHES_LIST
 
 SWITCHES = SWITCHES_LIST  # importing a list containing switch_name + ip
@@ -38,7 +39,7 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
             # Step 2
             # Resolving num of stack and interface
             matches = re.findall(r'\d+', interface_name)
-            ## Little Hack to enable sorting
+            # Little Hack to enable sorting
             if int(matches[2]) < 10:
                 sort_helper = matches[0] + "0" + matches[2]
             else:
@@ -96,7 +97,8 @@ def scanner():
             id = entry[0]
             mac = entry[2]
             mac = mac.replace(":", "")
-            hostname = db.select_hostname_by_mac(mac)  # Calls the Clearpass table
+            hostname = db.select_hostname_by_mac(
+                mac)  # Calls the Clearpass table
             ip = db.select_ip_by_mac(mac)
             if hostname is not None:
                 db.update_hostname_by_id(hostname[0], id, sw[0])
@@ -121,7 +123,8 @@ def searcher(hostname):
     SWITCHES = db.show_switch_tables()
     count = 0
     for sw in SWITCHES:
-        resp = db.select_entry_by_hostname(sw, hostname)  # BEWARE FOR SQL INJECTION
+        resp = db.select_entry_by_hostname(
+            sw, hostname)  # BEWARE FOR SQL INJECTION
         if resp:
             for output in resp:
                 # Building a nice dict from this
@@ -145,6 +148,47 @@ def prettify_response(col, data):
     return out
 
 
+def api():
+    import socket
+
+    # next create a socket object
+    s = socket.socket()
+    print("Socket successfully created")
+
+    # reserve a port on your computer in our
+    # case it is 12345 but it can be anything
+    port = 8181
+
+    # Next bind to the port
+    # we have not typed any ip in the ip field
+    # instead we have inputted an empty string
+    # this makes the server listen to requests
+    # coming from other computers on the network
+    s.bind(('', port))
+    print("socket binded to %s" % (port))
+
+    # put the socket into listening mode
+    s.listen(5)
+    print("socket is listening")
+
+    # a forever loop until we interrupt it or
+    # an error occurs
+    while True:
+
+        # Establish connection with client.
+        c, addr = s.accept()
+        print('Got connection from', addr)
+
+        # send a thank you message to the client. encoding to send byte type.
+        c.send('Thank you for connecting'.encode())
+
+        # Close the connection with the client
+        c.close()
+
+        # Breaking once connection closed
+        break
+
+
 if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
@@ -156,5 +200,6 @@ if __name__ == "__main__":
             hostname = sys.argv[x + 1]
             searcher(hostname)
             break
-
-    # scanner()
+        elif sys.argv[x] == "--api":
+            api()
+            break
