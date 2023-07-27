@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -185,4 +187,34 @@ func makeTableStruct(array [][]string) []Row {
 	}
 	//fmt.Printf("%v", table)
 	return table
+}
+
+func requestAndReceice() { // from Python!
+	url := "localhost:8181"
+	response, err := net.Dial("tcp", url)
+	if err != nil {
+		log.Fatal("Error: ", err)
+	}
+	defer response.Close()
+
+	fmt.Printf("%v \n", response)
+	buffer := make([]byte, 64) // Hardcoding the message-size to 64 byte
+	allData := []byte{}
+	for {
+		// n is the amount of data left in response
+		n, err := response.Read(buffer) // read into buffer
+		fmt.Printf("n: %v \n", n)
+		if err != nil {
+			fmt.Println("n: ", n, " Problem reading to buffer... ", err)
+		}
+		if n == 0 {
+			break
+		}
+		fmt.Printf("%v \n", string(buffer))
+		allData = append(allData, buffer[:n]...)
+	}
+
+	// fmt.Printf("%v \n", n)
+	fmt.Printf("%v \n", string(allData))
+
 }
