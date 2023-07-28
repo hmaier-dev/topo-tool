@@ -35,3 +35,14 @@ tr:nth-child(even) {
 .table .col-switchname {
    width: 90px;
 }
+
+.refresh-root{
+    float: left;
+}
+.refresh-text{
+}
+.refresh-output{
+    background-color: #c5bdbd;
+    width: 300px;
+    height: 300px;
+}
