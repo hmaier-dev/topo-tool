@@ -35,12 +35,3 @@ def pad_the_message(msg):
     pad = fixed_size - len(msg)
     padded = msg + b"\x00" * pad
     return padded
-
-
-def generator():
-    yield pad_the_message(b"Hello!")
-    yield pad_the_message(b"Is me!")
-    yield pad_the_message(b"Bye!")
-
-
-server(generator())

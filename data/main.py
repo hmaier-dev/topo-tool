@@ -3,6 +3,8 @@ import re
 import datetime
 import sys
 
+
+from server import server
 from db import Database
 from discover import Discovery  # Connection to HP Switches
 # Pulling hostname + mac from NAC (Network Access Control)
@@ -148,45 +150,15 @@ def prettify_response(col, data):
     return out
 
 
-def api():
-    import socket
-
-    # next create a socket object
-    s = socket.socket()
-    print("Socket successfully created")
-
-    # reserve a port on your computer in our
-    # case it is 12345 but it can be anything
-    port = 8181
-
-    # Next bind to the port
-    # we have not typed any ip in the ip field
-    # instead we have inputted an empty string
-    # this makes the server listen to requests
-    # coming from other computers on the network
-    s.bind(('', port))
-    print("socket binded to %s" % (port))
-
-    # put the socket into listening mode
-    s.listen(5)
-    print("socket is listening")
-
-    # a forever loop until we interrupt it or
-    # an error occurs
-    while True:
-
-        # Establish connection with client.
-        c, addr = s.accept()
-        print('Got connection from', addr)
-
-        # send a thank you message to the client. encoding to send byte type.
-        c.send('Thank you for connecting'.encode())
-
-        # Close the connection with the client
-        c.close()
-
-        # Breaking once connection closed
-        break
+def mock_scanner():
+    yield "Testing connection to the database..."
+    yield "Connection to database successful!"
+    yield "Setup tables..."
+    yield "Connecting to the clearpass api..."
+    yield "Scanning switches!"
+    yield "Scanning finished!"
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    yield f"Current date and time : {now}"
 
 
 if __name__ == "__main__":
@@ -200,6 +172,6 @@ if __name__ == "__main__":
             hostname = sys.argv[x + 1]
             searcher(hostname)
             break
-        elif sys.argv[x] == "--api":
-            api()
+        elif sys.argv[x] == "--server":
+            server(scanner())  # takes generator object and sends it to client
             break
