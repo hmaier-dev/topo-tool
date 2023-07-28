@@ -31,6 +31,7 @@ func main() {
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/refresh", refreshHandler)
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
 		log.Fatal("cannot listen and server", err)
@@ -62,6 +63,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
+		fmt.Printf("%v \n", r.Form)
 		hostname := r.Form.Get("hostname")
 		tableData := searchHostname(hostname)
 		if tableData == nil || len(tableData) == 0 { // returning if there is no sufficient tableData
@@ -82,7 +84,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+}
 
+func refreshHandler(w http.ResponseWriter, r *http.Request) {
+	// POST-Request
+	if r.Method == http.MethodPost {
+		fmt.Println("Hello!")
+		requestRefresh(w)
+
+	}
 }
 
 // ----------------------------------------------------
@@ -191,7 +201,8 @@ func makeTableStruct(array [][]string) []Row {
 	return table
 }
 
-func requestAndReceice() { // from Python!
+func requestRefresh(w http.ResponseWriter) { // from Python!
+	w.Header().Set("Content-Type", "text/plain")
 	url := "localhost:8181"
 	response, err := net.Dial("tcp", url)
 	if err != nil {
@@ -201,22 +212,23 @@ func requestAndReceice() { // from Python!
 
 	fmt.Printf("%v \n", response)
 	buffer := make([]byte, 64) // Hardcoding the message-size to 64 byte
-	allData := []byte{}
+	//allData := []byte{}
 	for {
 		// n is the amount of data left in response
 		n, err := response.Read(buffer) // read into buffer
 		fmt.Printf("n: %v \n", n)
 		if err != nil {
 			fmt.Println("n: ", n, " Problem reading to buffer... ", err)
+			break
 		}
 		if n == 0 {
 			break
 		}
-		fmt.Printf("%v \n", string(buffer))
-		allData = append(allData, buffer[:n]...)
+		fmt.Fprintf(w, string(buffer))
+
+		//fmt.Printf("%v \n", string(buffer))
+		//allData = append(allData, buffer[:n]...)
 	}
-
 	// fmt.Printf("%v \n", n)
-	fmt.Printf("%v \n", string(allData))
-
+	//fmt.Printf("%v \n", string(allData))
 }
