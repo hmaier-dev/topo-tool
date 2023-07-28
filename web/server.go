@@ -75,7 +75,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Loading the index.html without any data
 		tmpl, err := template.ParseFiles(index)
-		err = tmpl.Execute(w, nil)
+		err = tmpl.Execute(w, nil) // write response to w
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Fatal("problem with parsing the index template ", err)

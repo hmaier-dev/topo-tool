@@ -8,18 +8,24 @@
     <link href="static/style.css" rel="stylesheet" type="text/css">
     <script src="js/htmx.min.js"></script>
   </head>
-  <body>
+<!--  load the whole list by a POST-Request when the site loads-->
+  <body hx-post="/"
+        hx-target=".table-location"
+        hx-trigger="load">
     <div class="search-div">
       <label>Search for a hostname:</label>
+<!--     reload the list when user types in search-bar-->
       <input class="search-bar"
              hx-post="/"
-             hx-trigger="keyup changed delay:10ms"
+             hx-trigger="keyup changed load delay:10ms"
              hx-target=".table-location"
              placeholder="Search..."
              name="hostname"
       >
     </div>
-    <div class="table-location">
+    <div class="table-location"
+          hx-post="/load"
+          hx-trigger="load">
 
     </div>
 
