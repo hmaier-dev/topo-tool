@@ -1,8 +1,8 @@
 import socket
+import time
 import re
 import datetime
 import sys
-
 
 from server import server
 from db import Database
@@ -151,12 +151,19 @@ def prettify_response(col, data):
 
 
 def mock_scanner():
+    time.sleep(1)
     yield "Testing connection to the database..."
+    time.sleep(1)
     yield "Connection to database successful!"
+    time.sleep(1)
     yield "Setup tables..."
+    time.sleep(1)
     yield "Connecting to the clearpass api..."
+    time.sleep(1)
     yield "Scanning switches!"
+    time.sleep(1)
     yield "Scanning finished!"
+    time.sleep(1)
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     yield f"Current date and time : {now}"
 
@@ -173,5 +180,6 @@ if __name__ == "__main__":
             searcher(hostname)
             break
         elif sys.argv[x] == "--server":
-            server(scanner())  # takes generator object and sends it to client
+            # takes generator object and sends it to client
+            server(mock_scanner())
             break

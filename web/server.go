@@ -63,7 +63,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
-		fmt.Printf("%v \n", r.Form)
 		hostname := r.Form.Get("hostname")
 		tableData := searchHostname(hostname)
 		if tableData == nil || len(tableData) == 0 { // returning if there is no sufficient tableData
@@ -202,15 +201,15 @@ func makeTableStruct(array [][]string) []Row {
 }
 
 func requestRefresh(w http.ResponseWriter) { // from Python!
-	w.Header().Set("Content-Type", "text/plain")
+	// w.Header().Set("Content-Type", "text/plain")
+
 	url := "localhost:8181"
 	response, err := net.Dial("tcp", url)
 	if err != nil {
-		log.Fatal("Error: ", err)
+		log.Fatal("Cannot connect to: ", url, " Error: ", err)
 	}
 	defer response.Close()
 
-	fmt.Printf("%v \n", response)
 	buffer := make([]byte, 64) // Hardcoding the message-size to 64 byte
 	//allData := []byte{}
 	for {
@@ -224,7 +223,8 @@ func requestRefresh(w http.ResponseWriter) { // from Python!
 		if n == 0 {
 			break
 		}
-		fmt.Fprintf(w, string(buffer))
+		msg := "<p>" + string(buffer[:n]) + "</p>"
+		fmt.Fprintf(w, msg)
 
 		//fmt.Printf("%v \n", string(buffer))
 		//allData = append(allData, buffer[:n]...)

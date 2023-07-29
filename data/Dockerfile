@@ -8,5 +8,8 @@ COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
+EXPOSE 8181
+
 #CMD ["python","-u","main.py"]
-CMD ["stdbuf", "-oL", "python", "main.py", "--scanner"]
+# CMD ["stdbuf", "-oL", "python", "main.py", "--scanner"]
+CMD ["stdbuf", "-oL", "python", "main.py", "--server"]
