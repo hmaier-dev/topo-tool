@@ -80,6 +80,7 @@ class Database:
         cmd2 = lambda name: f"ALTER TABLE `{name}` AUTO_INCREMENT = 1 ;"
         sql = cmd(name)
         sql2 = cmd2(name)
+        # If an error occurs, check for typos (incl. BIG and small letters)
         self.cursor.execute(sql)
         self.cursor.execute(sql2)
 

@@ -3,11 +3,17 @@ services:
     build:
       context: ./data
     container_name: data
+    networks:
+      - topo-net
   web:
     build:
       context: ./web
     container_name: web
-
+    networks:
+      - topo-net
+    ports:
+      # <Extern>:<Intern>
+      - 8181:8181
   db:
     image: mariadb:latest
     container_name: db
@@ -23,11 +29,8 @@ services:
 #      - --default-authentication-plugin=mysql_native_password
     volumes:
       - ./db/setup.sql:/docker-entrypoint-initdb.d/init.sql
-
-
-        #    healthcheck:
-#      test: [ "CMD","curl","-f","http://localhost:3306" ]
-#      interval: 1s
-#      timeout: 1s
-#      retries: 5
-
+    networks:
+      - topo-net
+networks:
+  topo-net:
+    driver: bridge

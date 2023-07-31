@@ -2,8 +2,8 @@ FROM golang:1.20
 LABEL authors="hmaier@ipb-halle.de"
 WORKDIR /app
 COPY . .
-RUN wget https://unpkg.com/htmx.org/dist/htmx.min.js > ./js/htmx.min.js
+# RUN wget https://unpkg.com/htmx.org/dist/htmx.min.js > ./js/htmx.min.js
+ADD https://unpkg.com/htmx.org/dist/htmx.min.js /js/htmx.min.js
 
-
-EXPOSE 8080
+EXPOSE 8181
 CMD ["go", "run", "server.go"]

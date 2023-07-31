@@ -20,7 +20,6 @@ func init() {
 
 func main() {
 	conn = dbConnect()
-
 	// thx for this, chat-gpt
 	// Register the route for serving the CSS file
 	// Use-Case for this:
@@ -32,7 +31,8 @@ func main() {
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/refresh", refreshHandler)
-	err := http.ListenAndServe("localhost:8080", nil)
+	fmt.Println("Server is starting...")
+	err := http.ListenAndServe("0.0.0.0:8181", nil)
 	if err != nil {
 		log.Fatal("cannot listen and server", err)
 	}
@@ -63,6 +63,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
+		fmt.Println("POST-Request received...")
 		hostname := r.Form.Get("hostname")
 		tableData := searchHostname(hostname)
 		if tableData == nil || len(tableData) == 0 { // returning if there is no sufficient tableData
@@ -102,7 +103,8 @@ func refreshHandler(w http.ResponseWriter, r *http.Request) {
 func dbConnect() *sql.DB {
 	var user = "www-data"
 	var password = "password123"
-	var host = "localhost"
+	//var host = "localhost"
+	var host = "db"
 	var port = "3306"
 	var dbName = "topology-tool"
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName

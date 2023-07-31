@@ -17,8 +17,8 @@ SWITCHES = SWITCHES_LIST  # importing a list containing switch_name + ip
 #        (<name>,<ip>),
 #        ]
 
-db_host = "localhost"
-# db_host = "db"
+# db_host = "localhost"
+db_host = "db"
 db_port = 3306
 
 
@@ -62,7 +62,8 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
 
 def scanner():
     try:
-        # time.sleep(15)
+        print("Waiting for database for 30 secs...")
+        time.sleep(60)  # wait 15 sec for the db to start
         yield "Testing connection to the database..."
         check(db_host, db_port)
     except Exception as e:
@@ -71,10 +72,10 @@ def scanner():
 
     yield "Connection to database successful!"
     db = Database(db_host, db_port)
-    yield "Setup tables..."
-    db.drop(SWITCHES)
-    db.setup_clearpass_table()
-    db.setup_switch_tables(SWITCHES)
+    # Commented out for container-usage
+    # db.drop(SWITCHES)
+    # db.setup_clearpass_table()
+    # db.setup_switch_tables(SWITCHES)
 
     yield "Connecting to the clearpass api..."
     cp = Clearpass()
@@ -172,8 +173,12 @@ if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
         if sys.argv[x] == "--scanner":
-            for out in scanner():  # generator object
-                print(out)
+            while True:
+                for out in scanner():  # generator object
+                    print(out)
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print("Next scan in an hour...")
+                time.sleep(60*60)  # re-generate every hour
             break
         elif sys.argv[x] == "--search":
             hostname = sys.argv[x + 1]

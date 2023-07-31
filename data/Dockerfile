@@ -11,5 +11,5 @@ COPY . .
 EXPOSE 8181
 
 #CMD ["python","-u","main.py"]
-# CMD ["stdbuf", "-oL", "python", "main.py", "--scanner"]
-CMD ["stdbuf", "-oL", "python", "main.py", "--server"]
+CMD ["stdbuf", "-oL", "python", "main.py", "--scanner"]
+#CMD ["stdbuf", "-oL", "python", "main.py", "--server"]
