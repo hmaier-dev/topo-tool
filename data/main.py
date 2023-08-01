@@ -62,8 +62,11 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
 
 def scanner():
     try:
-        print("Waiting for database for 30 secs...")
-        time.sleep(60)  # wait 15 sec for the db to start
+        try:
+            print("Waiting for database for 60 secs...")
+            time.sleep(60)  # wait 15 sec for the db to start
+        except KeyboardInterrupt:
+            print("Skipping wait time!")
         yield "Testing connection to the database..."
         check(db_host, db_port)
     except Exception as e:

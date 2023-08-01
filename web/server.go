@@ -30,7 +30,6 @@ func main() {
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/refresh", refreshHandler)
 	fmt.Println("Server is starting...")
 	err := http.ListenAndServe("0.0.0.0:8181", nil)
 	if err != nil {
@@ -55,6 +54,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	var table = filepath.Join(static, "table.html")
 	if err != nil {
 		log.Fatal("cannot get working directory", err)
+	}
+
+	// Set CORS headers to allow all origins
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	// Check if the request is an OPTIONS preflight request
+	if r.Method == "OPTIONS" {
+		// Respond with status OK to preflight requests
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 
 	// POST-Request
