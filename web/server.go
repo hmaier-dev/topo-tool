@@ -106,8 +106,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func dbConnect() *sql.DB {
 	var user = "www-data"
 	var password = "password123"
-	//var host = "localhost"
-	var host = "db"
+	var host = "localhost"
+	//var host = "db"
 	var port = "3306"
 	var dbName = "topology-tool"
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName

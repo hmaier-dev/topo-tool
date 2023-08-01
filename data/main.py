@@ -17,8 +17,8 @@ SWITCHES = SWITCHES_LIST  # importing a list containing switch_name + ip
 #        (<name>,<ip>),
 #        ]
 
-# db_host = "localhost"
-db_host = "db"
+db_host = "localhost"
+# db_host = "db"
 db_port = 3306
 
 
@@ -61,6 +61,9 @@ def cleaning_mac_table(mac_table, regex_filter="Bridge-Aggregation"):
 
 
 def scanner():
+    yield "Starting scan!"
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    yield f"Current date and time : {now}"
     try:
         try:
             print("Waiting for database for 60 secs...")
@@ -179,9 +182,11 @@ if __name__ == "__main__":
             while True:
                 for out in scanner():  # generator object
                     print(out)
-                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print("Next scan in an hour...")
-                time.sleep(60*60)  # re-generate every hour
+                try:
+                    time.sleep(60*60)  # re-generate every hour
+                except KeyboardInterrupt:
+                    break
             break
         elif sys.argv[x] == "--search":
             hostname = sys.argv[x + 1]
