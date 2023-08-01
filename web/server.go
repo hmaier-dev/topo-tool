@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,8 +25,10 @@ func main() {
 	// You can get content from "<public_path>/<content>" by removing
 	// <public_path> from <content> (with StripPrefix), and setting FileServer to your <private_path>
 	// e.g. http.Handle("/my_public_path/", http.StripPrefix("/my_public_path/", http.FileServer(http.Dir("secret_location"))))
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
+	static := http.FileServer(http.Dir("./static"))
+	js := http.FileServer(http.Dir("./js"))
+	http.Handle("/static/", http.StripPrefix("/static/", static))
+	http.Handle("/js/", http.StripPrefix("/js/", js))
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
 	fmt.Println("Server is starting...")
@@ -93,15 +94,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Fatal("problem with parsing the index template ", err)
 		}
-
-	}
-}
-
-func refreshHandler(w http.ResponseWriter, r *http.Request) {
-	// POST-Request
-	if r.Method == http.MethodPost {
-		fmt.Println("Hello!")
-		requestRefresh(w)
 
 	}
 }
@@ -213,35 +205,35 @@ func makeTableStruct(array [][]string) []Row {
 	return table
 }
 
-func requestRefresh(w http.ResponseWriter) { // from Python!
-	// w.Header().Set("Content-Type", "text/plain")
-
-	url := "localhost:8181"
-	response, err := net.Dial("tcp", url)
-	if err != nil {
-		log.Fatal("Cannot connect to: ", url, " Error: ", err)
-	}
-	defer response.Close()
-
-	buffer := make([]byte, 64) // Hardcoding the message-size to 64 byte
-	//allData := []byte{}
-	for {
-		// n is the amount of data left in response
-		n, err := response.Read(buffer) // read into buffer
-		fmt.Printf("n: %v \n", n)
-		if err != nil {
-			fmt.Println("n: ", n, " Problem reading to buffer... ", err)
-			break
-		}
-		if n == 0 {
-			break
-		}
-		msg := "<p>" + string(buffer[:n]) + "</p>"
-		fmt.Fprintf(w, msg)
-
-		//fmt.Printf("%v \n", string(buffer))
-		//allData = append(allData, buffer[:n]...)
-	}
-	// fmt.Printf("%v \n", n)
-	//fmt.Printf("%v \n", string(allData))
-}
+//func requestRefresh(w http.ResponseWriter) { // from Python!
+//	// w.Header().Set("Content-Type", "text/plain")
+//
+//	url := "localhost:8181"
+//	response, err := net.Dial("tcp", url)
+//	if err != nil {
+//		log.Fatal("Cannot connect to: ", url, " Error: ", err)
+//	}
+//	defer response.Close()
+//
+//	buffer := make([]byte, 64) // Hardcoding the message-size to 64 byte
+//	//allData := []byte{}
+//	for {
+//		// n is the amount of data left in response
+//		n, err := response.Read(buffer) // read into buffer
+//		fmt.Printf("n: %v \n", n)
+//		if err != nil {
+//			fmt.Println("n: ", n, " Problem reading to buffer... ", err)
+//			break
+//		}
+//		if n == 0 {
+//			break
+//		}
+//		msg := "<p>" + string(buffer[:n]) + "</p>"
+//		fmt.Fprintf(w, msg)
+//
+//		//fmt.Printf("%v \n", string(buffer))
+//		//allData = append(allData, buffer[:n]...)
+//	}
+//	// fmt.Printf("%v \n", n)
+//	//fmt.Printf("%v \n", string(allData))
+//}
