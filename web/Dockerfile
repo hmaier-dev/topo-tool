@@ -6,7 +6,7 @@ COPY . .
 
 RUN mkdir -p /app/js
 
-ADD https://unpkg.com/htmx.org/dist/htmx.min.js /js/htmx.min.js
+ADD https://unpkg.com/htmx.org/dist/htmx.min.js /app/js/htmx.min.js
 
 RUN go mod download github.com/go-sql-driver/mysql
 
