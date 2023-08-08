@@ -27,6 +27,8 @@ func main() {
 	// e.g. http.Handle("/my_public_path/", http.StripPrefix("/my_public_path/", http.FileServer(http.Dir("secret_location"))))
 	static := http.FileServer(http.Dir("./static"))
 	js := http.FileServer(http.Dir("./js"))
+	fmt.Printf("%v \n", static)
+	fmt.Printf("%v \n", js)
 	http.Handle("/static/", http.StripPrefix("/static/", static))
 	http.Handle("/js/", http.StripPrefix("/js/", js))
 	// Register function to "/"
