@@ -25,10 +25,8 @@ func main() {
 	// You can get content from "<public_path>/<content>" by removing
 	// <public_path> from <content> (with StripPrefix), and setting FileServer to your <private_path>
 	// e.g. http.Handle("/my_public_path/", http.StripPrefix("/my_public_path/", http.FileServer(http.Dir("secret_location"))))
-	static := http.FileServer(http.Dir("./static"))
-	js := http.FileServer(http.Dir("./js"))
-	fmt.Printf("%v \n", static)
-	fmt.Printf("%v \n", js)
+	static := http.FileServer(http.Dir("static"))
+	js := http.FileServer(http.Dir("js"))
 	http.Handle("/static/", http.StripPrefix("/static/", static))
 	http.Handle("/js/", http.StripPrefix("/js/", js))
 	// Register function to "/"
