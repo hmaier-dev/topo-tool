@@ -57,11 +57,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("cannot get working directory", err)
 	}
 
-	// Set CORS headers to allow all origins
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
 	// Check if the request is an OPTIONS preflight request
 	if r.Method == "OPTIONS" {
 		// Respond with status OK to preflight requests
