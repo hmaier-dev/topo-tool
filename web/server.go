@@ -136,7 +136,11 @@ func getQuery(conn *sql.DB, query string) [][]string {
 	if err != nil {
 		log.Fatal("problems with query", err)
 	}
-	cols, _ := rows.Columns()
+	cols, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Cannot address variable rows...")
+		return [][]string{}
+	}
 
 	rawResult := make([][]byte, len(cols)) // [row][values] -> e.g. row: [[value][value][value]]
 	dest := make([]interface{}, len(cols)) // .Scan() needs []any as result type
