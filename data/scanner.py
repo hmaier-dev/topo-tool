@@ -10,7 +10,8 @@ from clearpass import Clearpass  # connects to clearpass-api
 class Scanner:
     def __init__(self, switches):
         self.SWITCHES = switches
-        self.db_host = "localhost"
+        self.db_host = "db"
+        # self.db_host = "localhost"
         self.db_port = 3306
 
     def check_conn(self, host, port, timeout=2):

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 import _ "github.com/go-sql-driver/mysql"
 
@@ -101,21 +102,32 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func dbConnect() *sql.DB {
 	var user = "www-data"
 	var password = "password123"
-	var host = "localhost"
-	//var host = "db"
+	//var host = "localhost"
+	var host = "db"
 	var port = "3306"
 	var dbName = "topology-tool"
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName
-	conn, err := sql.Open("mysql", source)
-	if err != nil {
-		log.Fatal("sql.open failed: ", err)
-	}
+	timeout := 30 * time.Second
+	startTime := time.Now()
 
-	err = conn.Ping()
-	if err != nil {
-		log.Fatal("Ping to db failed...")
+	for {
+		conn, err := sql.Open("mysql", source)
+		if err != nil {
+			log.Fatal("sql.open failed: ", err)
+		}
+		err = conn.Ping()
+		if err != nil {
+			fmt.Println("Ping to db failed...")
+		}
+		if err == nil {
+			fmt.Println("Connection to db succesful!")
+			break
+		}
+		if time.Since(startTime) >= timeout {
+			log.Fatal("Timeout: No connection to db.")
+		}
+		time.Sleep(5 * time.Second)
 	}
-
 	return conn
 }
 
