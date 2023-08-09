@@ -11,14 +11,15 @@ import (
 )
 import _ "github.com/go-sql-driver/mysql"
 
+// Global Var
 var conn *sql.DB
 
 func init() {
-
+	fmt.Println("Connecting to the db...")
+	conn = dbConnect()
 }
 
 func main() {
-	conn = dbConnect()
 	// thx for this, chat-gpt
 	// Register the route for serving the CSS file
 	// Use-Case for this:
@@ -107,8 +108,14 @@ func dbConnect() *sql.DB {
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName
 	conn, err := sql.Open("mysql", source)
 	if err != nil {
-		log.Fatal("sql.open", err)
+		log.Fatal("sql.open failed: ", err)
 	}
+
+	err = conn.Ping()
+	if err != nil {
+		log.Fatal("Ping to db failed...")
+	}
+
 	return conn
 }
 
