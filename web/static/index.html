@@ -9,7 +9,7 @@
     <script src="/topotool/js/htmx.min.js"></script>
   </head>
 <!--  load the whole list by a POST-Request when the site loads-->
-  <body hx-post="/"
+  <body hx-post="/topotool"
         hx-target=".table-location"
         hx-trigger="load">
 
@@ -27,7 +27,7 @@
     <div class="search-div">
       <label>Search for a hostname:
         <input class="search-bar"
-               hx-post="/"
+               hx-post="/topotool"
                hx-trigger="keyup changed load delay:10ms"
                hx-target=".table-location"
                placeholder="Search..."
