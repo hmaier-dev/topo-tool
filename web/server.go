@@ -27,8 +27,8 @@ func main() {
 	// e.g. http.Handle("/my_public_path/", http.StripPrefix("/my_public_path/", http.FileServer(http.Dir("secret_location"))))
 	static := http.FileServer(http.Dir("static"))
 	js := http.FileServer(http.Dir("js"))
-	http.Handle("/static/", http.StripPrefix("/static/", static))
-	http.Handle("/js/", http.StripPrefix("/js/", js))
+	http.Handle("/topotool/static/", http.StripPrefix("/topotool/static/", static)) // must be the same as in html
+	http.Handle("/topotool/js/", http.StripPrefix("/topotool/js/", js))             // same as in html
 	// Register function to "/"
 	http.HandleFunc("/", indexHandler)
 	fmt.Println("Server is starting...")
@@ -70,7 +70,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Failed to parse POST-Request", http.StatusBadRequest)
 		}
-		fmt.Println("POST-Request received...")
 		hostname := r.Form.Get("hostname")
 		tableData := searchHostname(hostname)
 		if tableData == nil || len(tableData) == 0 { // returning if there is no sufficient tableData
