@@ -30,7 +30,7 @@ func main() {
 	http.Handle("/topotool/static/", http.StripPrefix("/topotool/static/", static)) // must be the same as in html
 	http.Handle("/topotool/js/", http.StripPrefix("/topotool/js/", js))             // same as in html
 	// Register function to "/"
-	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/topotool", indexHandler)
 	fmt.Println("Server is starting...")
 	err := http.ListenAndServe("0.0.0.0:8181", nil)
 	if err != nil {
