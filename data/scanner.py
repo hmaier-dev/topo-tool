@@ -18,14 +18,14 @@ class Scanner:
 
     def check_conn(self, host, port, timeout=2):
         count = 0
-        while count < 5:
+        while count < 10:
             try:
                 with socket.create_connection((host, port), timeout) as conn:
                     return
             except (socket.error, socket.timeout) as e:
                 print(f"Connection failed: {e}")
             count += 1
-            time.sleep(2)
+            time.sleep(5)
         sys.exit(1)
 
 
