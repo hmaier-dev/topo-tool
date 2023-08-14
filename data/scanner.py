@@ -83,7 +83,7 @@ class Scanner:
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         yield f"Current date and time : {now}"
 
-    def query_clearpass(self): ##  Passing db into this is quick and dirty...
+    def query_clearpass(self):
         db = self.db
         cp = Clearpass()
         xml = cp.call_api()

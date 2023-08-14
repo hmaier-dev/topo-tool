@@ -1,14 +1,10 @@
 import socket
 import time
-import re
 import datetime
 import sys
 
 from server import server
 from db import Database
-from discover import Discovery  # Connection to HP Switches
-# Pulling hostname + mac from NAC (Network Access Control)
-from clearpass import Clearpass
 from switches import SWITCHES_LIST
 from scanner import Scanner
 
@@ -78,14 +74,6 @@ def mock_scanner():
     yield f"Current date and time : {now}"
 
 
-
-def check_conn(self, host, port, timeout=2):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # presumably
-    sock.settimeout(timeout)
-    sock.connect((host, port))
-    sock.close()
-
-
 if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
@@ -101,10 +89,10 @@ if __name__ == "__main__":
                     break
             break
         elif sys.argv[x] == "--query-clearpass":
-            scan = Scanner(SWITCHES_LIST).query_clearpass()
+            Scanner(SWITCHES_LIST).query_clearpass()
             break
         elif sys.argv[x] == "--query-switches":
-            scan = Scanner(SWITCHES_LIST).query_clearpass()
+            Scanner(SWITCHES_LIST).query_clearpass()
             break
         elif sys.argv[x] == "--search":
             hostname = sys.argv[x + 1]
