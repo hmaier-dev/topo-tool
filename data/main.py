@@ -100,6 +100,12 @@ if __name__ == "__main__":
                 except KeyboardInterrupt:
                     break
             break
+        elif sys.argv[x] == "--query-clearpass":
+            scan = Scanner(SWITCHES_LIST).query_clearpass()
+            break
+        elif sys.argv[x] == "--query-switches":
+            scan = Scanner(SWITCHES_LIST).query_clearpass()
+            break
         elif sys.argv[x] == "--search":
             hostname = sys.argv[x + 1]
             searcher(hostname)

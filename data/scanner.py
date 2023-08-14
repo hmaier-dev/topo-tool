@@ -15,6 +15,10 @@ class Scanner:
         self.db_host = "db"
         # self.db_host = "localhost"
         self.db_port = 3306
+        print(f"Checking the connection to {self.db_host} on {self.db_port}...")
+        if self.check_conn(self.db_host,self.db_port):
+            self.db = Database(self.db_host, self.db_port)
+            print("Connection to database successful!")
 
     def check_conn(self, host, port, timeout=2):
         count = 0
@@ -64,28 +68,37 @@ class Scanner:
         yield "Starting scan!"
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         yield f"Current date and time : {now}"
-        yield f"Checking the connection to {self.db_host} on {self.db_port}..."
-        self.check_conn(self.db_host, self.db_port)
-        yield "Connection to database successful!"
-        db = Database(self.db_host, self.db_port)
+        # db = Database(self.db_host, self.db_port)
         # Commented out for container-usage
         # db.drop(SWITCHES)
         # db.setup_clearpass_table()
         # db.setup_switch_tables(SWITCHES)
 
         yield "Connecting to the clearpass api..."
+        self.query_clearpass()
+        yield "Connecting to switches..."
+        self.query_switches()
+
+        yield "Scanning finished!"
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        yield f"Current date and time : {now}"
+
+    def query_clearpass(self): ##  Passing db into this is quick and dirty...
+        db = self.db
         cp = Clearpass()
         xml = cp.call_api()
         json = cp.convert_to_json(xml)  # constructs json with hostname + mac + ip
         db.truncate("clearpass")
         db.insert_api_data(json)
 
+    def query_switches(self):
+        db = self.db
         max = len(self.SWITCHES)
         c = 1
         for sw in self.SWITCHES:
             name = sw[0]
             ip = sw[1]
-            yield f"[{c}/{max}] Connecting to {ip} a.k.a {name}..."
+            print(f"[{c}/{max}] Connecting to {ip} a.k.a {name}...")
             access = Discovery(sw)
             dirty = access.get_mac_table()  # Connecting to a single access switch
             clean = self.clean(dirty)
@@ -106,6 +119,4 @@ class Scanner:
                 # yield f"{hostname[0] + ip[0]} -> {mac}"
             c += 1
 
-        yield "Scanning finished!"
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        yield f"Current date and time : {now}"
+
