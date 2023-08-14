@@ -12,8 +12,8 @@ from clearpass import Clearpass  # connects to clearpass-api
 class Scanner:
     def __init__(self, switches):
         self.SWITCHES = switches
-        # self.db_host = "db"
-        self.db_host = "localhost"
+        self.db_host = "db"
+        # self.db_host = "localhost"
         self.db_port = 3306
 
         print(f"Checking the connection to {self.db_host} on {self.db_port}...")
@@ -85,7 +85,6 @@ class Scanner:
         db.insert_api_data(json)
 
     def query_switches(self):
-        print("")
         db = self.database
         max = len(self.SWITCHES)
         c = 1
