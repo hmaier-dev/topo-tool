@@ -12,11 +12,12 @@ from clearpass import Clearpass  # connects to clearpass-api
 class Scanner:
     def __init__(self, switches):
         self.SWITCHES = switches
-        self.db_host = "db"
-        # self.db_host = "localhost"
+        # self.db_host = "db"
+        self.db_host = "localhost"
         self.db_port = 3306
+
         print(f"Checking the connection to {self.db_host} on {self.db_port}...")
-        if self.check_conn(self.db_host,self.db_port):
+        if self.check_conn(self.db_host, self.db_port):
             self.database = Database(self.db_host, self.db_port)
             print("Connection to database successful!")
 
@@ -25,7 +26,7 @@ class Scanner:
         while count < 10:
             try:
                 with socket.create_connection((host, port), timeout) as conn:
-                    return
+                    return True
             except (socket.error, socket.timeout) as e:
                 print(f"Connection failed: {e}")
             count += 1
