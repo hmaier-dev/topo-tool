@@ -17,7 +17,7 @@ class Scanner:
         self.db_port = 3306
         print(f"Checking the connection to {self.db_host} on {self.db_port}...")
         if self.check_conn(self.db_host,self.db_port):
-            self.db = Database(self.db_host, self.db_port)
+            self.database = Database(self.db_host, self.db_port)
             print("Connection to database successful!")
 
     def check_conn(self, host, port, timeout=2):
@@ -31,8 +31,6 @@ class Scanner:
             count += 1
             time.sleep(5)
         sys.exit(1)
-
-
 
     def clean(self, mac_table, regex_filter="Bridge-Aggregation"):
         tmp_list = []
@@ -68,23 +66,17 @@ class Scanner:
         yield "Starting scan!"
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         yield f"Current date and time : {now}"
-        # db = Database(self.db_host, self.db_port)
-        # Commented out for container-usage
-        # db.drop(SWITCHES)
-        # db.setup_clearpass_table()
-        # db.setup_switch_tables(SWITCHES)
 
         yield "Connecting to the clearpass api..."
         self.query_clearpass()
         yield "Connecting to switches..."
         self.query_switches()
-
         yield "Scanning finished!"
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         yield f"Current date and time : {now}"
 
     def query_clearpass(self):
-        db = self.db
+        db = self.database
         cp = Clearpass()
         xml = cp.call_api()
         json = cp.convert_to_json(xml)  # constructs json with hostname + mac + ip
@@ -92,7 +84,7 @@ class Scanner:
         db.insert_api_data(json)
 
     def query_switches(self):
-        db = self.db
+        db = self.database
         max = len(self.SWITCHES)
         c = 1
         for sw in self.SWITCHES:
