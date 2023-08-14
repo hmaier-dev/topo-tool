@@ -78,11 +78,19 @@ def mock_scanner():
     yield f"Current date and time : {now}"
 
 
+
+def check_conn(self, host, port, timeout=2):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # presumably
+    sock.settimeout(timeout)
+    sock.connect((host, port))
+    sock.close()
+
+
 if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
         if sys.argv[x] == "--scanner":
-            scan = Scanner.start(SWITCHES_LIST)
+            scan = Scanner(SWITCHES_LIST).start()
             while True:
                 for out in scan:  # generator object
                     print(out)

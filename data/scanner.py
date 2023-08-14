@@ -1,11 +1,13 @@
 import socket
 import re
 import datetime
+import sys
 import time
 
 from db import Database  # maintains the connection to the database
 from discover import Discovery  # pulls data from a single switch
 from clearpass import Clearpass  # connects to clearpass-api
+
 
 class Scanner:
     def __init__(self, switches):
@@ -15,10 +17,18 @@ class Scanner:
         self.db_port = 3306
 
     def check_conn(self, host, port, timeout=2):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # presumably
-        sock.settimeout(timeout)
-        sock.connect((host, port))
-        sock.close()
+        count = 0
+        while count < 5:
+            try:
+                with socket.create_connection((host, port), timeout) as conn:
+                    return
+            except (socket.error, socket.timeout) as e:
+                print(f"Connection failed: {e}")
+            count += 1
+            time.sleep(2)
+        sys.exit(1)
+
+
 
     def clean(self, mac_table, regex_filter="Bridge-Aggregation"):
         tmp_list = []
@@ -54,18 +64,8 @@ class Scanner:
         yield "Starting scan!"
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         yield f"Current date and time : {now}"
-        try:
-            try:
-                print("Waiting for database for 60 secs...")
-                time.sleep(60)  # wait 15 sec for the db to start
-            except KeyboardInterrupt:
-                print("Skipping wait time!")
-            yield "Testing connection to the database..."
-            self.check_conn(self.db_host, self.db_port)
-        except Exception as e:
-            yield (f"Problem with db: {e}")
-            return
-
+        yield f"Checking the connection to {self.db_host} on {self.db_port}..."
+        self.check_conn(self.db_host, self.db_port)
         yield "Connection to database successful!"
         db = Database(self.db_host, self.db_port)
         # Commented out for container-usage
