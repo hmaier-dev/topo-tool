@@ -85,6 +85,7 @@ class Scanner:
         db.insert_api_data(json)
 
     def query_switches(self):
+        print("")
         db = self.database
         max = len(self.SWITCHES)
         c = 1

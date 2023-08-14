@@ -16,7 +16,7 @@ SWITCHES = SWITCHES_LIST  # importing a list containing switch_name + ip
 
 
 def searcher(hostname):
-    db_host = "locahost"
+    db_host = "localhost"
     db_port = 3306
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # presumably
@@ -77,6 +77,7 @@ def mock_scanner():
 if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
+        print(sys.argv[x])
         if sys.argv[x] == "--scanner":
             scan = Scanner(SWITCHES_LIST).start()
             while True:
@@ -88,10 +89,10 @@ if __name__ == "__main__":
                 except KeyboardInterrupt:
                     break
             break
-        elif sys.argv[x] == "--query-clearpass":
-            Scanner(SWITCHES_LIST).query_clearpass()
-            break
         elif sys.argv[x] == "--query-switches":
+            Scanner(SWITCHES_LIST).query_switches()
+            break
+        elif sys.argv[x] == "--query-clearpass":
             Scanner(SWITCHES_LIST).query_clearpass()
             break
         elif sys.argv[x] == "--search":
