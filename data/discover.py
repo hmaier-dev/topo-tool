@@ -3,6 +3,7 @@ from napalm import get_network_driver
 
 import os.path
 import cred
+import logging
 
 '''
 Main Class where All the good Stuff Happens
@@ -24,8 +25,11 @@ class Discovery:
         #
         # if not os.path.exists(self.table_dir):
         #     os.makedirs(self.table_dir)
+
+        logging.basicConfig(level=logging.DEBUG)
+
         self.driver = get_network_driver("h3c_comware")
-        self.driver = self.driver(self.ip, self.USERNAME, self.PASSWORD, timeout=5)
+        self.driver = self.driver(self.ip, self.USERNAME, self.PASSWORD, timeout=10)
         self.driver.open()
 
     def get_mac_table(self):

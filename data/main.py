@@ -77,7 +77,6 @@ def mock_scanner():
 if __name__ == "__main__":
     y = len(sys.argv)
     for x in range(1, y):
-        print(sys.argv[x])
         if sys.argv[x] == "--scanner":
             scan = Scanner(SWITCHES_LIST).start()
             while True:
