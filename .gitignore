@@ -1,5 +1,6 @@
 cred.py
 switches.py
+test.py
 /data/clearpass-tables/*
 /data/switch-tables/*
 venv/*
