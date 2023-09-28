@@ -3,14 +3,13 @@ package main
 import (
 	"bufio"
 	"encoding/base64"
-	json2 "encoding/json"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
-	"time"
 )
 
 type SwitchInfo struct {
@@ -57,10 +56,6 @@ func main() {
 // SSH-Connector
 func ssh_connector() {
 
-	//for _, sw := range switchesList {
-	//	fmt.Printf("Name: %v, IP: %v \n", sw.Name, sw.IP)
-	//}
-
 	username, password := get_cred("access_switch", "./cred.txt")
 	config := &ssh.ClientConfig{
 		User: username,
@@ -75,21 +70,14 @@ func ssh_connector() {
 		log.Fatalf("Failed to dial: %v", err)
 	}
 	defer conn.Close()
-	// New session
 
+	// New session
 	session, err := conn.NewSession()
 	if err != nil {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
 	raw := run_command(session, "display mac-address")
-
-	//fmt.Printf("%v", raw)
-
-	//json := process_response(raw)
 	process_response(raw)
-
-	//fmt.Printf("%v", string(json))
-
 }
 
 func run_command(session *ssh.Session, cmd string) string {
@@ -101,41 +89,37 @@ func run_command(session *ssh.Session, cmd string) string {
 }
 func process_response(dirty string) {
 
-	//fmt.Printf("%v", raw)
-	//fmt.Printf("%v", string(raw))
-
-	//fmt.Printf("%s", raw)
-	//fmt.Printf("%s", lines)
-
-	//fmt.Printf("%v", dirty)
-	//fmt.Println(reflect.TypeOf(dirty))
+	var macTable []SwitchData
+	// 								 MAC			  VLAN    State   Port    Aging
+	re := regexp.MustCompile(`([0-9a-fA-F-]{14})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`) //match the mac-address and the strings and whitespaces afterward
 
 	lines := strings.Split(dirty, "\n")
-	var macTable []SwitchData
 	for _, line := range lines {
-		fmt.Printf("%v", line)
 		if line == "" {
 			continue
 		}
-		fmt.Printf("%v", line)
-		fields := strings.Fields(line)
-		fmt.Printf("%v", fields)
-		time.Sleep(2 * time.Second)
+		if matches := re.FindStringSubmatch(line); matches != nil {
 
-		//data := SwitchData{
-		//	Mac:       fields[0],
-		//	Vlan:      fields[1],
-		//	State:     fields[2],
-		//	Interface: fields[3],
-		//	Aging:     fields[4],
-		//}
-		//macTable = append(macTable, data)
+			fmt.Printf("%v", matches)
+			data := SwitchData{
+				Mac:       matches[1],
+				Vlan:      matches[2],
+				State:     matches[3],
+				Interface: matches[4],
+				Aging:     matches[5],
+			}
+			macTable = append(macTable, data)
+		}
+
 	}
-	json, err := json2.Marshal(macTable)
-	if err != nil {
-		fmt.Println("Error while converting byte to json: ", err)
-	}
-	fmt.Println(json)
+	fmt.Printf("%v", macTable)
+	//macTable = append(macTable, data)
+
+	//json, err := json2.Marshal(macTable)
+	//if err != nil {
+	//	fmt.Println("Error while converting byte to json: ", err)
+	//}
+	//fmt.Println(json)
 }
 
 //-----------------------------------------------------
