@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/base64"
+	json2 "encoding/json"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"log"
@@ -56,7 +57,7 @@ func main() {
 // SSH-Connector
 func ssh_connector() {
 
-	username, password := get_cred("access_switch", "./cred.txt")
+	username, password := read_cread_from_file("access_switch", "./cred.txt")
 	config := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
@@ -77,7 +78,10 @@ func ssh_connector() {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
 	raw := run_command(session, "display mac-address")
-	process_response(raw)
+	json := process_response(raw)
+
+	fmt.Printf("%v", string(json))
+
 }
 
 func run_command(session *ssh.Session, cmd string) string {
@@ -87,20 +91,18 @@ func run_command(session *ssh.Session, cmd string) string {
 	}
 	return string(out)
 }
-func process_response(dirty string) {
+func process_response(dirty string) []byte {
 
 	var macTable []SwitchData
 	// 								 MAC			  VLAN    State   Port    Aging
-	re := regexp.MustCompile(`([0-9a-fA-F-]{14})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`) //match the mac-address and the strings and whitespaces afterward
-
-	lines := strings.Split(dirty, "\n")
+	re := regexp.MustCompile(`([0-9a-fA-F-]{14})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`) // match the mac-address and the strings/whitespaces afterward
+	lines := strings.Split(dirty, "\n")                                            // building lines from
 	for _, line := range lines {
-		if line == "" {
-			continue
-		}
 		if matches := re.FindStringSubmatch(line); matches != nil {
+			if !validate(matches) {
+				continue
+			}
 
-			fmt.Printf("%v", matches)
 			data := SwitchData{
 				Mac:       matches[1],
 				Vlan:      matches[2],
@@ -112,14 +114,23 @@ func process_response(dirty string) {
 		}
 
 	}
-	fmt.Printf("%v", macTable)
-	//macTable = append(macTable, data)
+	json, err := json2.Marshal(macTable)
+	if err != nil {
+		fmt.Println("Error while converting byte to json: ", err)
+	}
+	return json
+}
 
-	//json, err := json2.Marshal(macTable)
-	//if err != nil {
-	//	fmt.Println("Error while converting byte to json: ", err)
-	//}
-	//fmt.Println(json)
+func validate(matches []string) bool {
+	re := regexp.MustCompile(`BAGG`) // Bridge-Aggregation
+	if match := re.FindString(matches[4]); match != "" {
+		return false
+	}
+	return true
+}
+
+func resolve_interface() {
+
 }
 
 //-----------------------------------------------------
@@ -128,7 +139,7 @@ func process_response(dirty string) {
 // CLEARPASS-CONNECTOR
 func clearpass() {
 	var username, password string
-	username, password = get_cred("clearpass", "./cred.txt")
+	username, password = read_cread_from_file("clearpass", "./cred.txt")
 	url := "http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint"
 	authString := username + ":" + password
 	encodedAuthString := base64.StdEncoding.EncodeToString([]byte(authString))
@@ -152,7 +163,8 @@ func clearpass() {
 
 // -----------------------------------------------------
 // Handy tools
-func get_cred(forConnector string, path string) (string, string) {
+func read_cread_from_file(forConnector string, path string) (string, string) {
+	// forConnector clear_pass
 	var username, password string
 	file, err := os.Open(path)
 	if err != nil {
