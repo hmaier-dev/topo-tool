@@ -3,11 +3,14 @@ package main
 import (
 	"bufio"
 	"encoding/base64"
+	json2 "encoding/json"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 )
 
 type SwitchInfo struct {
@@ -35,6 +38,14 @@ var switchesList = []SwitchInfo{
 	{"sw_kms", "192.168.132.128"},
 	// {"SW_P", "192.168.132.136"}, 1/0/28 set as uplink
 	// {"SW_A121", "192.168.132.131"}, 1/0/24 set as uplink
+}
+
+type SwitchData struct {
+	Mac       string `json:"mac-address"`
+	Vlan      string `json:"vlan"`
+	State     string `json:"state"`
+	Interface string `json:"interface"`
+	Aging     string `json:"aging"`
 }
 
 func main() {
@@ -70,17 +81,61 @@ func ssh_connector() {
 	if err != nil {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
-	run := run_command(session, "display mac-address")
-	println(string(run))
+	raw := run_command(session, "display mac-address")
+
+	//fmt.Printf("%v", raw)
+
+	//json := process_response(raw)
+	process_response(raw)
+
+	//fmt.Printf("%v", string(json))
 
 }
 
-func run_command(session *ssh.Session, cmd string) []byte {
+func run_command(session *ssh.Session, cmd string) string {
 	out, err := session.CombinedOutput(cmd)
 	if err != nil {
-		log.Fatalf("Failed to establish connection: %v", err)
+		log.Fatalf("Failed to establish a session: %v", err)
 	}
-	return out
+	return string(out)
+}
+func process_response(dirty string) {
+
+	//fmt.Printf("%v", raw)
+	//fmt.Printf("%v", string(raw))
+
+	//fmt.Printf("%s", raw)
+	//fmt.Printf("%s", lines)
+
+	//fmt.Printf("%v", dirty)
+	//fmt.Println(reflect.TypeOf(dirty))
+
+	lines := strings.Split(dirty, "\n")
+	var macTable []SwitchData
+	for _, line := range lines {
+		fmt.Printf("%v", line)
+		if line == "" {
+			continue
+		}
+		fmt.Printf("%v", line)
+		fields := strings.Fields(line)
+		fmt.Printf("%v", fields)
+		time.Sleep(2 * time.Second)
+
+		//data := SwitchData{
+		//	Mac:       fields[0],
+		//	Vlan:      fields[1],
+		//	State:     fields[2],
+		//	Interface: fields[3],
+		//	Aging:     fields[4],
+		//}
+		//macTable = append(macTable, data)
+	}
+	json, err := json2.Marshal(macTable)
+	if err != nil {
+		fmt.Println("Error while converting byte to json: ", err)
+	}
+	fmt.Println(json)
 }
 
 //-----------------------------------------------------
@@ -111,6 +166,8 @@ func clearpass() {
 
 }
 
+// -----------------------------------------------------
+// Handy tools
 func get_cred(forConnector string, path string) (string, string) {
 	var username, password string
 	file, err := os.Open(path)
@@ -157,5 +214,3 @@ func get_cred(forConnector string, path string) (string, string) {
 	}
 	return username, password
 }
-
-//---------------------------------------------------------------------
