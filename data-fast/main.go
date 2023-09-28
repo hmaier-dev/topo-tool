@@ -38,6 +38,7 @@ var switchesList = []SwitchInfo{
 }
 
 func main() {
+	fmt.Println("Starting ssh connect...")
 	ssh_connector()
 }
 
