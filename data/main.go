@@ -8,6 +8,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql" // this is the sql driver
 	"golang.org/x/crypto/ssh"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -63,10 +64,11 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting ssh connect...")
 	for {
-		query_clearpass()       // get all hostnames and ip-addresses
-		query_access_switches() //
+		fmt.Printf("[%v] Querying clearpass...", time.Now())
+		queryClearpass() // get all hostnames and ip-addresses
+		fmt.Printf("[%v] Querying access-switches...", time.Now())
+		queryAccessSwitches() //
 		time.Sleep(30 * time.Minute)
 	}
 }
@@ -112,8 +114,8 @@ func dbConnect() *sql.DB {
 // -----------------------------------------------------
 //
 //	the connection to the access switches
-func query_access_switches() {
-	username, password := read_cread_from_file("access_switch", "./cred.txt")
+func queryAccessSwitches() {
+	username, password := readCredFromFile("access_switch", "./cred.txt")
 	config := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
@@ -138,28 +140,28 @@ func query_access_switches() {
 	if err != nil {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
-	raw := run_command(session, "display mac-address")
-	sorted := process_response(raw) // sort out non-significant interfaces and break up data
-	json := convertToJson(sorted)   // serialize into []byte
+	raw := runCommand(session, "display mac-address")
+	sorted := processResponse(raw) // sort out non-significant interfaces and break up data
+	json := convertToJson(sorted)  // serialize into []byte
 
 	fmt.Printf("%v", string(json))
 
 }
 
-func run_command(session *ssh.Session, cmd string) string {
+func runCommand(session *ssh.Session, cmd string) string {
 	out, err := session.CombinedOutput(cmd)
 	if err != nil {
 		log.Fatalf("Failed to establish a session: %v", err)
 	}
 	return string(out)
 }
-func process_response(dirty string) []SwitchData {
+func processResponse(dirty string) []SwitchData {
 	var macTable []SwitchData
 	// Explaining the regex:
 	// 								 MAC			  VLAN    State   Port    Aging
 	re := regexp.MustCompile(`([0-9a-fA-F-]{14})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`) // match the mac-address and the strings/whitespaces afterward
 	lines := strings.Split(dirty, "\n")                                            // building lines from
-	// Going through the whole ssh output!
+	// Going through the WHOLE ssh output!
 	for _, line := range lines {
 		if matches := re.FindStringSubmatch(line); matches != nil {
 			if !validate(matches) {
@@ -212,9 +214,9 @@ func disassembleInterfaceString(interfaceStr string) (string, string) {
 
 // --------------------------
 // CLEARPASS-CONNECTOR
-func query_clearpass() {
+func queryClearpass() {
 	var username, password string
-	username, password = read_cread_from_file("clearpass", "./cred.txt")
+	username, password = readCredFromFile("clearpass", "./cred.txt")
 	url := "http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint"
 	authString := username + ":" + password
 	encodedAuthString := base64.StdEncoding.EncodeToString([]byte(authString))
@@ -227,19 +229,33 @@ func query_clearpass() {
 		fmt.Println("Error: ", err)
 		return
 	}
-	var arr []byte
-	n, err := response.Body.Read(arr)
-	fmt.Printf("%v \n", n)
-	fmt.Printf("%v \n", arr)
-
 	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body) // from http.Response into []byte
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+	//
+	//if err := xml2.Unmarshal(body, xml); err != nil {
+	//
+	//}
+	//
+	//fmt.Printf("%v \n", xml)
+
+	// Print the response body
+	fmt.Println("Response:", string(body))
+
+	//var arr []byte
+	//n, err := response.Body.Read(arr)
+	//fmt.Printf("%v \n", n)
+	//fmt.Printf("%v \n", arr)
 
 }
 
 // -----------------------------------------------------
 // Handy tools
-func read_cread_from_file(forConnector string, path string) (string, string) {
-	// forConnector clear_pass
+func readCredFromFile(forConnector string, path string) (string, string) {
 	var username, password string
 	file, err := os.Open(path)
 	if err != nil {
