@@ -45,6 +45,8 @@ type SwitchData struct {
 	Vlan      string `json:"vlan"`
 	State     string `json:"state"`
 	Interface string `json:"interface"`
+	Stack     string `json:"stack"`
+	Port      string `json:"port"`
 	Aging     string `json:"aging"`
 }
 
@@ -92,8 +94,8 @@ func run_command(session *ssh.Session, cmd string) string {
 	return string(out)
 }
 func process_response(dirty string) []byte {
-
 	var macTable []SwitchData
+	// Explaining the regex:
 	// 								 MAC			  VLAN    State   Port    Aging
 	re := regexp.MustCompile(`([0-9a-fA-F-]{14})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)`) // match the mac-address and the strings/whitespaces afterward
 	lines := strings.Split(dirty, "\n")                                            // building lines from
@@ -102,18 +104,21 @@ func process_response(dirty string) []byte {
 			if !validate(matches) {
 				continue
 			}
-
+			stack, port := disassembleInterfaceString(matches[4])
 			data := SwitchData{
 				Mac:       matches[1],
 				Vlan:      matches[2],
 				State:     matches[3],
 				Interface: matches[4],
+				Stack:     stack,
+				Port:      port,
 				Aging:     matches[5],
 			}
 			macTable = append(macTable, data)
-		}
+		} // END if
+	} // END for
 
-	}
+	// Build []byte with json
 	json, err := json2.Marshal(macTable)
 	if err != nil {
 		fmt.Println("Error while converting byte to json: ", err)
@@ -129,8 +134,12 @@ func validate(matches []string) bool {
 	return true
 }
 
-func resolve_interface() {
-
+func disassembleInterfaceString(interfaceStr string) (string, string) {
+	re := regexp.MustCompile(`\d+`)                                // digits in interface string
+	if match := re.FindAllString(interfaceStr, -1); match != nil { // FindAllString with the -1 works, but I don't know why...
+		return match[0], match[2]
+	}
+	return "", ""
 }
 
 //-----------------------------------------------------
