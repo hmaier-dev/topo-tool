@@ -2,9 +2,6 @@
 This tool pulls mac-addresses from a list of **HPE7-Comware-Switches** 
 and compares them with those saved on a **Aruba-Clearpass** (**N**etwork**A**ccess**C**ontrol).
 
-To get data from the switches, the `napalm-h3c-comware` python-library is used. 
-For scraping the clearpass, the standard clearpass-api is used.
-
 From this comparison, we can allocate which **switch-port** belongs to which **hostname**.
 
 ## Running without docker
