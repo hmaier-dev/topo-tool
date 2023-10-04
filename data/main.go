@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // this is the sql driver
 	"golang.org/x/crypto/ssh"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -59,15 +60,15 @@ var switchesList = []SwitchInfo{
 var conn *sql.DB
 
 func init() {
-	fmt.Println("Connecting to the db...")
+	fmt.Printf("[%v] Connecting to the database...\n", time.Now())
 	conn = dbConnect()
 }
 
 func main() {
 	for {
-		fmt.Printf("[%v] Querying clearpass...", time.Now())
+		fmt.Printf("[%v] Querying clearpass...\n", time.Now())
 		queryClearpass() // get all hostnames and ip-addresses
-		fmt.Printf("[%v] Querying access-switches...", time.Now())
+		fmt.Printf("[%v] Querying access-switches...\n", time.Now())
 		queryAccessSwitches() //
 		time.Sleep(30 * time.Minute)
 	}
@@ -100,7 +101,7 @@ func dbConnect() *sql.DB {
 			try += 1
 		}
 		if err == nil {
-			fmt.Println("Connection to db succesful!")
+			fmt.Printf("[%v] Connecting to database successful!\n", time.Now())
 			break
 		}
 		if time.Since(startTime) >= timeoutSec {
@@ -245,6 +246,11 @@ func queryClearpass() {
 
 	// Print the response body
 	fmt.Println("Response:", string(body))
+	// write the whole body at once
+	err = ioutil.WriteFile("output.txt", body, 0644)
+	if err != nil {
+		panic(err)
+	}
 
 	//var arr []byte
 	//n, err := response.Body.Read(arr)
