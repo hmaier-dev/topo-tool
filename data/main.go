@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // this is the sql driver
 	"golang.org/x/crypto/ssh"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -63,7 +64,7 @@ type TipsApiResponse struct {
 	Endpoints []Endpoint `xml:"Endpoints>Endpoint"`
 }
 
-// Endpoint everything which is nested inside (not between) a tag, is a an attribute short: attr
+// Endpoint everything which is nested inside (not between) a tag, is an attribute short: attr
 type Endpoint struct {
 	MacAddress      string `xml:"macAddress,attr"`
 	EndpointProfile struct {
@@ -231,41 +232,25 @@ func disassembleInterfaceString(interfaceStr string) (string, string) {
 // --------------------------
 // CLEARPASS-CONNECTOR
 func queryClearpass() {
-	var username, password string
-	username, password = readCredFromFile("clearpass", "./cred.txt")
-	url := "http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint"
-	authString := username + ":" + password
-	encodedAuthString := base64.StdEncoding.EncodeToString([]byte(authString))
-	request, err := http.NewRequest("GET", url, nil)
-	request.Header.Set("Authorization", "Basic "+encodedAuthString)
-	// Requesting
-	client := &http.Client{}
-	response, err := client.Do(request)
+	var err error
+	//request := setupRequest()
+	//// Requesting
+	//body := sendRequest(request)
+
+	// Read XML content from file
+	xmlFile, err := os.Open("./formated-output.xml")
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error opening XML file:", err)
 		return
 	}
-	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body) // from http.Response into []byte
+	defer xmlFile.Close()
+
+	body, err := ioutil.ReadAll(xmlFile)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
+		fmt.Println("Error reading XML file:", err)
 		return
 	}
 
-	//// Read XML content from file
-	//xmlFile, err := os.Open("./formated-output.xml")
-	//if err != nil {
-	//	fmt.Println("Error opening XML file:", err)
-	//	return
-	//}
-	//defer xmlFile.Close()
-	//
-	//body, err := ioutil.ReadAll(xmlFile)
-	//if err != nil {
-	//	fmt.Println("Error reading XML file:", err)
-	//	return
-	//}
-	//
 	// Parsing
 	var ApiResponse TipsApiResponse
 	err = xml.Unmarshal(body, &ApiResponse)
@@ -273,15 +258,37 @@ func queryClearpass() {
 		log.Fatalf("Error parsing xml: %v \n", err)
 	}
 
-	// Iterating
-	for _, endpoint := range ApiResponse.Endpoints {
-
-		if endpoint.EndpointProfile.Hostname != nil {
-			fmt.Println("Hostname ", *endpoint.EndpointProfile.Hostname)
-		}
+	// Clearing the clearpass table
+	_, err = conn.Exec("TRUNCATE clearpass;")
+	if err != nil {
+		log.Fatal("problems with query ", err)
 	}
 
-	time.Sleep(5 * time.Minute)
+	query := "INSERT INTO clearpass (hostname, mac) VALUES "
+	values := []interface{}{} // I have no clue why there 2x {}....
+	var mac string
+	var host string
+	// Iterating
+	for _, endpoint := range ApiResponse.Endpoints {
+		mac = endpoint.MacAddress
+		host = " "
+		if endpoint.EndpointProfile.Hostname != nil {
+			host = *endpoint.EndpointProfile.Hostname
+		}
+		//query += fmt.Sprintf("(%s, %s), ", host, mac)
+		query += "(?, ?),"
+		values = append(values, host, mac)
+	}
+	query = query[:len(query)-1] // delete the last comma
+	//query += ";"
+
+	fmt.Println(query)
+
+	// Inserting into database
+	_, err = conn.Exec(query, values...)
+	if err != nil {
+		log.Fatal("problems with query ", err)
+	}
 
 	//// Print the response body
 	//fmt.Println("Response:", string(body))
@@ -293,6 +300,30 @@ func queryClearpass() {
 	//	panic(err)
 	//}
 
+}
+
+func setupRequest() *http.Request {
+	var username, password string
+	username, password = readCredFromFile("clearpass", "./cred.txt")
+	url := "http://clearpass-cl.ipb-halle.de/tipsapi/config/read/Endpoint"
+	authString := username + ":" + password
+	encodedAuthString := base64.StdEncoding.EncodeToString([]byte(authString))
+	request, _ := http.NewRequest("GET", url, nil)
+	request.Header.Set("Authorization", "Basic "+encodedAuthString)
+	return request
+}
+func sendRequest(request *http.Request) []byte {
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatalf("Error: %v\n", err)
+	}
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body) // from http.Response into []byte
+	if err != nil {
+		log.Fatalf("Error reading response body: %v\n", err)
+	}
+	return body
 }
 
 // -----------------------------------------------------
@@ -342,4 +373,37 @@ func readCredFromFile(forConnector string, path string) (string, string) {
 
 	}
 	return username, password
+}
+
+// Return all rows from a database query
+func getQuery(conn *sql.DB, query string) [][]string {
+	rows, err := conn.Query(query)
+	if err != nil {
+		log.Fatal("problems with query", err)
+	}
+	cols, err := rows.Columns()
+	if err != nil {
+		fmt.Println("Cannot address variable rows...")
+		return [][]string{}
+	}
+
+	rawResult := make([][]byte, len(cols)) // [row][values] -> e.g. row: [[value][value][value]]
+	dest := make([]interface{}, len(cols)) // .Scan() needs []any as result type
+	allRows := make([][]string, 0)
+	for i := range cols {
+		dest[i] = &rawResult[i] // mapping dest indices to byte slice
+	}
+	for rows.Next() {
+		err := rows.Scan(dest...)
+		if err != nil {
+			log.Fatal("problems scanning the database", err)
+		}
+		singleRow := make([]string, len(cols))
+		for i, raw := range rawResult {
+			singleRow[i] = string(raw) // from byte to string
+			//fmt.Printf("%v -> %v \n", i, singleRow)
+		}
+		allRows = append(allRows, singleRow)
+	}
+	return allRows
 }
