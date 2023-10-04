@@ -5,11 +5,11 @@ import (
 	"database/sql" // you need to use a driver with this
 	"encoding/base64"
 	json2 "encoding/json"
+	"encoding/xml"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql" // this is the sql driver
 	"golang.org/x/crypto/ssh"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -55,6 +55,18 @@ var switchesList = []SwitchInfo{
 	{"sw_kms", "192.168.132.128"},
 	// {"SW_P", "192.168.132.136"}, 1/0/28 set as uplink
 	// {"SW_A121", "192.168.132.131"}, 1/0/24 set as uplink
+}
+
+// -------------------------------------------------------------------------------------------
+// Clearpass API Response
+type TipsApiResponse struct {
+	Endpoints []Endpoint `xml:"Endpoints>Endpoint"`
+}
+
+// everything which is nested inside (not between) a tag, is a an attribute short: attr
+type Endpoint struct {
+	MacAddress string `xml:"macAddress,attr"`
+	Hostname   string `xml:"EndpointProfile>hostname,attr"`
 }
 
 var conn *sql.DB
@@ -237,25 +249,26 @@ func queryClearpass() {
 		fmt.Println("Error reading response body:", err)
 		return
 	}
-	//
-	//if err := xml2.Unmarshal(body, xml); err != nil {
-	//
-	//}
-	//
-	//fmt.Printf("%v \n", xml)
 
-	// Print the response body
-	fmt.Println("Response:", string(body))
-	// write the whole body at once
-	err = ioutil.WriteFile("output.txt", body, 0644)
+	var ApiResponse TipsApiResponse
+	err = xml.Unmarshal(body, &ApiResponse)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error parsing xml: %v \n", err)
 	}
 
-	//var arr []byte
-	//n, err := response.Body.Read(arr)
-	//fmt.Printf("%v \n", n)
-	//fmt.Printf("%v \n", arr)
+	for _, endpoint := range ApiResponse.Endpoints {
+		fmt.Println("Hostname", endpoint.Hostname)
+	}
+
+	//// Print the response body
+	//fmt.Println("Response:", string(body))
+	// write the whole body at once
+
+	//// Writting the xml to file
+	//err = ioutil.WriteFile("output.txt", body, 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 }
 
