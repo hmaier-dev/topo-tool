@@ -57,16 +57,19 @@ var switchesList = []SwitchInfo{
 	// {"SW_A121", "192.168.132.131"}, 1/0/24 set as uplink
 }
 
-// -------------------------------------------------------------------------------------------
+// TipsApiResponse -------------------------------------------------------------------------------------------
 // Clearpass API Response
 type TipsApiResponse struct {
 	Endpoints []Endpoint `xml:"Endpoints>Endpoint"`
 }
 
-// everything which is nested inside (not between) a tag, is a an attribute short: attr
+// Endpoint everything which is nested inside (not between) a tag, is a an attribute short: attr
 type Endpoint struct {
-	MacAddress string `xml:"macAddress,attr"`
-	Hostname   string `xml:"EndpointProfile>hostname,attr"`
+	MacAddress      string `xml:"macAddress,attr"`
+	EndpointProfile struct {
+		Hostname *string `xml:"hostname,attr"` // I really don't know why this is not an attr?!?!?!
+	} `xml:"EndpointProfile"`
+	//Hostname   *string `xml:"EndpointProfile>hostname,attr"`
 }
 
 var conn *sql.DB
@@ -235,7 +238,7 @@ func queryClearpass() {
 	encodedAuthString := base64.StdEncoding.EncodeToString([]byte(authString))
 	request, err := http.NewRequest("GET", url, nil)
 	request.Header.Set("Authorization", "Basic "+encodedAuthString)
-
+	// Requesting
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
@@ -243,28 +246,48 @@ func queryClearpass() {
 		return
 	}
 	defer response.Body.Close()
-
 	body, err := io.ReadAll(response.Body) // from http.Response into []byte
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
 		return
 	}
 
+	//// Read XML content from file
+	//xmlFile, err := os.Open("./formated-output.xml")
+	//if err != nil {
+	//	fmt.Println("Error opening XML file:", err)
+	//	return
+	//}
+	//defer xmlFile.Close()
+	//
+	//body, err := ioutil.ReadAll(xmlFile)
+	//if err != nil {
+	//	fmt.Println("Error reading XML file:", err)
+	//	return
+	//}
+	//
+	// Parsing
 	var ApiResponse TipsApiResponse
 	err = xml.Unmarshal(body, &ApiResponse)
 	if err != nil {
 		log.Fatalf("Error parsing xml: %v \n", err)
 	}
 
+	// Iterating
 	for _, endpoint := range ApiResponse.Endpoints {
-		fmt.Println("Hostname", endpoint.Hostname)
+
+		if endpoint.EndpointProfile.Hostname != nil {
+			fmt.Println("Hostname ", *endpoint.EndpointProfile.Hostname)
+		}
 	}
+
+	time.Sleep(5 * time.Minute)
 
 	//// Print the response body
 	//fmt.Println("Response:", string(body))
 	// write the whole body at once
 
-	//// Writting the xml to file
+	//// Writing the xml to file
 	//err = ioutil.WriteFile("output.txt", body, 0644)
 	//if err != nil {
 	//	panic(err)
