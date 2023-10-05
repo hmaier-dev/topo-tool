@@ -28,7 +28,7 @@ type SwitchInfo struct {
 var switchesList = []SwitchInfo{
 	{"sw_a-nord", "192.168.132.125"},
 	{"sw_a-sued", "192.168.132.126"},
-	{"sw_c-nord-core", "192.168.132.120"},
+	//{"sw_c-nord-core", "192.168.132.120"},
 	{"sw_c-nord", "192.168.132.121"},
 	{"sw_c-sued", "192.168.132.122"},
 	{"sw_b", "192.168.132.132"},
@@ -85,14 +85,16 @@ func main() {
 		queryClearpass() // get all hostnames and ip-addresses
 		fmt.Printf("[%v] Querying access-switches...\n", time.Now())
 		for _, sw := range switchesList {
-			fmt.Printf("[%v] Talk to %v \n", time.Now(), sw.Name)
+			fmt.Printf("[%v] Talking to %v \n", time.Now(), sw.Name)
 			queryAccessSwitches(sw)
 		}
+		fmt.Printf("[%v] Wating 30 Minutes for the next cycle...\n", time.Now().Format("2006-01-02 15:04:05")) // I don't know why this format is used and not the standard
 		time.Sleep(30 * time.Minute)
 	}
 }
 
-// Establishing the connection to the
+// ---------------------------------------------------------------------------------
+// DATABASE-CONNECTION HANDLING
 func dbConnect() *sql.DB {
 	var user = "www-data"
 	var password = "password123"
@@ -132,7 +134,7 @@ func dbConnect() *sql.DB {
 
 // -----------------------------------------------------
 //
-//	the connection to the access switches
+//	SSH-CONNECTION HANDLING
 func queryAccessSwitches(sw SwitchInfo) {
 	username, password := readCredFromFile("access_switch", "./cred.txt")
 	config := &ssh.ClientConfig{
@@ -150,7 +152,8 @@ func queryAccessSwitches(sw SwitchInfo) {
 	defer func(conn *ssh.Client) {
 		err := conn.Close()
 		if err != nil {
-			log.Fatalf("Error closing connection...")
+			//log.Fatalf("Error closing connection: %v", err)
+			fmt.Printf("Got little error, closing the connection: %v \n", err) // this error occures frequently but I don't know why... ??!? :(
 		}
 	}(sshConn)
 
@@ -159,6 +162,15 @@ func queryAccessSwitches(sw SwitchInfo) {
 	if err != nil {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
+	defer func(session *ssh.Session) {
+		err := session.Close()
+		if err != nil {
+			if err.Error() != "EOF" {
+				log.Fatalf("Error when closing session: %v", err)
+			}
+		}
+	}(session)
+
 	raw := runCommand(session, "display mac-address")
 	filtered := processResponse(raw) // sort out non-significant interfaces and break up data
 	//json := convertToJson(sorted)  // serialize into []byte
@@ -180,7 +192,7 @@ func queryAccessSwitches(sw SwitchInfo) {
 			vlan := entry.Vlan
 			stack := entry.Stack
 			interfaceNum := entry.Port
-			query := fmt.Sprintf("INSERT INTO `%v` (interface_name,mac,hostname,vlan,stack,interface_num) VALUES (?,?,?,?,?,?);", sw.Name)
+			query := fmt.Sprintf("INSERT INTO `%s` (interface_name,mac,hostname,vlan,stack,interface_num) VALUES (?,?,?,?,?,?);", sw.Name)
 			_, err = dbConn.Exec(query, interfaceName, macAddress, hostname, vlan, stack, interfaceNum)
 			if err != nil {
 				log.Fatalf("Error while inserting: %v \n", err)
