@@ -102,8 +102,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func dbConnect() *sql.DB {
 	var user = "www-data"
 	var password = "password123"
-	//var host = "localhost"
-	var host = "db"
+	var host = "localhost"
+	//var host = "db"
 	var port = "3306"
 	var dbName = "topology-tool"
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName
@@ -120,7 +120,7 @@ func dbConnect() *sql.DB {
 			fmt.Println("Ping to db failed...")
 		}
 		if err == nil {
-			fmt.Println("Connection to db succesful!")
+			fmt.Println("Connection to db successful!")
 			break
 		}
 		if time.Since(startTime) >= timeout {
@@ -175,8 +175,8 @@ func searchHostname(h string) []Row {
 	var totalResp [][]string
 	for _, sw := range switchNames {
 		n := sw[0]
-		query := "Select * From `" + n + "` WHERE hostname LIKE '%" + h + "%';"
-		resp = getQuery(conn, query) // response from a single table
+		query := "Select * From `" + n + "` WHERE hostname LIKE '%" + h + "%' ORDER BY stack ASC, interface_num ASC;" // Let SQL order the data for me
+		resp = getQuery(conn, query)                                                                                  // response from a single table
 		for _, entry := range resp {
 			entry = append(entry, n) // append the slice with the SwitchName
 			totalResp = append(totalResp, entry)
