@@ -1,26 +1,26 @@
 <table class="table">
   <tr>
-    <th>ID</th>
+<!--    <th>ID</th>-->
     <th class="col-switchname">SwitchName</th>
     <th>Interface Name</th>
+    <th class="col-stack">Stack</th>
+    <th class="col-interface-num">Port</th>
     <th>MAC</th>
     <th class="col-hostname">Hostname</th>
-    <th>IP-Address</th>
     <th>Vlan</th>
-    <th>Stack</th>
-    <th>Interface Num</th>
+    <th>IP-Address</th>
   </tr>
   {{ range .Data }}
   <tr>
-    <td>{{ .Id }}</td>
+<!--    <td>{{ .Id }}</td>-->
     <td>{{ .SwitchName }}</td>
     <td>{{ .InterfaceName }}</td>
-    <td>{{ .Mac }}</td>
-    <td>{{ .Hostname }}</td>
-    <td>{{ .Ip }}</td>
-    <td>{{ .Vlan }}</td>
     <td>{{ .Stack }}</td>
     <td>{{ .InterfaceNum }}</td>
+    <td>{{ .Mac }}</td>
+    <td>{{ .Hostname }}</td>
+    <td>{{ .Vlan }}</td>
+    <td>{{ .Ip }}</td>
   </tr>
   {{ end }}
 </table>

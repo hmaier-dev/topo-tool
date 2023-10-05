@@ -175,8 +175,8 @@ func searchHostname(h string) []Row {
 	var totalResp [][]string
 	for _, sw := range switchNames {
 		n := sw[0]
-		query := "Select * From `" + n + "` WHERE hostname LIKE '%" + h + "%' ORDER BY id ASC;"
-		resp = getQuery(conn, query) // response from a single table
+		query := "Select * From `" + n + "` WHERE hostname LIKE '%" + h + "%' ORDER BY stack ASC, interface_num ASC;" // Let SQL order the data for me
+		resp = getQuery(conn, query)                                                                                  // response from a single table
 		for _, entry := range resp {
 			entry = append(entry, n) // append the slice with the SwitchName
 			totalResp = append(totalResp, entry)
