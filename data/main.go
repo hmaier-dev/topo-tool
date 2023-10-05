@@ -81,11 +81,12 @@ func init() {
 
 func main() {
 	for {
-		fmt.Printf("[%v] Querying clearpass...\n", time.Now())
+		// TODO: there is a more elegant way to format the time
+		fmt.Printf("[%v] Querying clearpass...\n", time.Now().Format("2006-01-02 15:04:05"))
 		queryClearpass() // get all hostnames and ip-addresses
-		fmt.Printf("[%v] Querying access-switches...\n", time.Now())
+		fmt.Printf("[%v] Querying access-switches...\n", time.Now().Format("2006-01-02 15:04:05"))
 		for _, sw := range switchesList {
-			fmt.Printf("[%v] Talking to %v \n", time.Now(), sw.Name)
+			fmt.Printf("[%v] Talking to %v \n", time.Now().Format("2006-01-02 15:04:05"), sw.Name)
 			queryAccessSwitches(sw)
 		}
 		fmt.Printf("[%v] Wating 30 Minutes for the next cycle...\n", time.Now().Format("2006-01-02 15:04:05")) // I don't know why this format is used and not the standard
@@ -121,7 +122,7 @@ func dbConnect() *sql.DB {
 			try += 1
 		}
 		if err == nil {
-			fmt.Printf("[%v] Connecting to database successful!\n", time.Now())
+			fmt.Printf("[%v] Connecting to database successful!\n", time.Now().Format("2006-01-02 15:04:05"))
 			break
 		}
 		if time.Since(startTime) >= timeoutSec {
@@ -277,10 +278,12 @@ func queryClearpass() {
 	var host string
 	var placeholders string
 
-	//request := setupRequest()
-	//body := sendRequest(request)
+	// Call the clearpass API
+	request := setupRequest()
+	body := sendRequest(request)
 
-	body := readXmlFromFile()
+	//// Read from fetched xml file
+	//body := readXmlFromFile()
 
 	// Parsing
 	var ApiResponse TipsApiResponse
@@ -305,7 +308,7 @@ func queryClearpass() {
 		}
 	}
 	placeholders = placeholders[:len(placeholders)-1] // delete the last comma
-	query := "INSERT INTO clearpass (hostname, mac) VALUES " + placeholders + ";"
+	query := fmt.Sprintf("INSERT INTO clearpass (hostname, mac) VALUES %s;", placeholders)
 
 	// Inserting into database
 	_, err = dbConn.Exec(query, values...)
@@ -341,6 +344,7 @@ func sendRequest(request *http.Request) []byte {
 
 // -----------------------------------------------------
 // Handy tools
+// TODO: make this function more elegant
 func readCredFromFile(forConnector string, path string) (string, string) {
 	var username, password string
 	file, err := os.Open(path)
