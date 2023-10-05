@@ -25,17 +25,6 @@ type SwitchInfo struct {
 	IP   string
 }
 
-// SwitchData represents data from the ssh-output
-type SwitchData struct {
-	Mac       string `json:"mac-address"`
-	Vlan      string `json:"vlan"`
-	State     string `json:"state"`
-	Interface string `json:"interface"`
-	Stack     string `json:"stack"`
-	Port      string `json:"port"`
-	Aging     string `json:"aging"`
-}
-
 var switchesList = []SwitchInfo{
 	{"sw_a-nord", "192.168.132.125"},
 	{"sw_a-sued", "192.168.132.126"},
@@ -58,6 +47,17 @@ var switchesList = []SwitchInfo{
 	// {"SW_A121", "192.168.132.131"}, 1/0/24 set as uplink
 }
 
+// SwitchData represents data from the ssh-output
+type SwitchData struct {
+	MacAddress string //`json:"mac-address"`
+	Vlan       string //`json:"vlan"`
+	State      string //`json:"state"`
+	Interface  string //`json:"interface"`
+	Stack      string //`json:"stack"`
+	Port       string //`json:"port"`
+	Aging      string //`json:"aging"`
+}
+
 // TipsApiResponse -------------------------------------------------------------------------------------------
 // Clearpass API Response
 type TipsApiResponse struct {
@@ -68,16 +68,15 @@ type TipsApiResponse struct {
 type Endpoint struct {
 	MacAddress      string `xml:"macAddress,attr"`
 	EndpointProfile struct {
-		Hostname *string `xml:"hostname,attr"` // I really don't know why this is not an attr?!?!?!
+		Hostname *string `xml:"hostname,attr"` // using a *ptr because hostname could be nil
 	} `xml:"EndpointProfile"`
-	//Hostname   *string `xml:"EndpointProfile>hostname,attr"`
 }
 
-var conn *sql.DB
+var dbConn *sql.DB
 
 func init() {
 	fmt.Printf("[%v] Connecting to the database...\n", time.Now())
-	conn = dbConnect()
+	dbConn = dbConnect()
 }
 
 func main() {
@@ -85,7 +84,10 @@ func main() {
 		fmt.Printf("[%v] Querying clearpass...\n", time.Now())
 		queryClearpass() // get all hostnames and ip-addresses
 		fmt.Printf("[%v] Querying access-switches...\n", time.Now())
-		queryAccessSwitches() //
+		for _, sw := range switchesList {
+			fmt.Printf("[%v] Talk to %v \n", time.Now(), sw.Name)
+			queryAccessSwitches(sw)
+		}
 		time.Sleep(30 * time.Minute)
 	}
 }
@@ -105,13 +107,13 @@ func dbConnect() *sql.DB {
 	maxi := timeout / wait
 	try := 1
 	startTime := time.Now()
-	conn, err := sql.Open("mysql", source)
+	dbConn, err := sql.Open("mysql", source)
 	if err != nil {
 		log.Fatal("sql.open failed: ", err)
 	}
 
 	for {
-		err = conn.Ping()
+		err = dbConn.Ping()
 		if err != nil {
 			fmt.Printf("[%d/%d] Ping failed...\n", try, maxi)
 			try += 1
@@ -125,13 +127,13 @@ func dbConnect() *sql.DB {
 		}
 		time.Sleep(5 * time.Second)
 	}
-	return conn
+	return dbConn
 }
 
 // -----------------------------------------------------
 //
 //	the connection to the access switches
-func queryAccessSwitches() {
+func queryAccessSwitches(sw SwitchInfo) {
 	username, password := readCredFromFile("access_switch", "./cred.txt")
 	config := &ssh.ClientConfig{
 		User: username,
@@ -141,7 +143,7 @@ func queryAccessSwitches() {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	// Establish connection
-	conn, err := ssh.Dial("tcp", switchesList[1].IP+":22", config)
+	sshConn, err := ssh.Dial("tcp", sw.IP+":22", config)
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	}
@@ -150,18 +152,42 @@ func queryAccessSwitches() {
 		if err != nil {
 			log.Fatalf("Error closing connection...")
 		}
-	}(conn)
+	}(sshConn)
 
 	// New session
-	session, err := conn.NewSession()
+	session, err := sshConn.NewSession()
 	if err != nil {
 		log.Fatalf("Failed to establish connection: %v", err)
 	}
 	raw := runCommand(session, "display mac-address")
-	sorted := processResponse(raw) // sort out non-significant interfaces and break up data
-	json := convertToJson(sorted)  // serialize into []byte
+	filtered := processResponse(raw) // sort out non-significant interfaces and break up data
+	//json := convertToJson(sorted)  // serialize into []byte
 
-	fmt.Printf("%v", string(json))
+	// Clearing the current table
+	_, err = dbConn.Exec("TRUNCATE `" + sw.Name + "`;")
+	if err != nil {
+		log.Fatal("problems with query ", err)
+	}
+
+	// Searching for corresponding mac-addresses to find the hostname
+	for _, entry := range filtered {
+		mac := strings.ReplaceAll(entry.MacAddress, "-", "")
+		resp := getAllColumns(dbConn, "SELECT * from clearpass WHERE mac= '"+mac+"';")
+		if 0 < len(resp) {
+			interfaceName := entry.Interface
+			macAddress := resp[0][2]
+			hostname := resp[0][1]
+			vlan := entry.Vlan
+			stack := entry.Stack
+			interfaceNum := entry.Port
+			query := fmt.Sprintf("INSERT INTO `%v` (interface_name,mac,hostname,vlan,stack,interface_num) VALUES (?,?,?,?,?,?);", sw.Name)
+			_, err = dbConn.Exec(query, interfaceName, macAddress, hostname, vlan, stack, interfaceNum)
+			if err != nil {
+				log.Fatalf("Error while inserting: %v \n", err)
+			}
+		}
+
+	}
 
 }
 
@@ -186,13 +212,13 @@ func processResponse(dirty string) []SwitchData {
 			}
 			stack, port := disassembleInterfaceString(matches[4])
 			data := SwitchData{
-				Mac:       matches[1],
-				Vlan:      matches[2],
-				State:     matches[3],
-				Interface: matches[4],
-				Stack:     stack,
-				Port:      port,
-				Aging:     matches[5],
+				MacAddress: matches[1],
+				Vlan:       matches[2],
+				State:      matches[3],
+				Interface:  matches[4],
+				Stack:      stack,
+				Port:       port,
+				Aging:      matches[5],
 			}
 			macTable = append(macTable, data)
 		} // END if
@@ -233,23 +259,16 @@ func disassembleInterfaceString(interfaceStr string) (string, string) {
 // CLEARPASS-CONNECTOR
 func queryClearpass() {
 	var err error
+	// Building the slice to unwrap in dbConn.Exec
+	values := []interface{}{} // I have no clue why there 2x {}....
+	var mac string
+	var host string
+	var placeholders string
+
 	//request := setupRequest()
-	//// Requesting
 	//body := sendRequest(request)
 
-	// Read XML content from file
-	xmlFile, err := os.Open("./formated-output.xml")
-	if err != nil {
-		fmt.Println("Error opening XML file:", err)
-		return
-	}
-	defer xmlFile.Close()
-
-	body, err := ioutil.ReadAll(xmlFile)
-	if err != nil {
-		fmt.Println("Error reading XML file:", err)
-		return
-	}
+	body := readXmlFromFile()
 
 	// Parsing
 	var ApiResponse TipsApiResponse
@@ -259,47 +278,28 @@ func queryClearpass() {
 	}
 
 	// Clearing the clearpass table
-	_, err = conn.Exec("TRUNCATE clearpass;")
+	_, err = dbConn.Exec("TRUNCATE clearpass;")
 	if err != nil {
 		log.Fatal("problems with query ", err)
 	}
 
-	query := "INSERT INTO clearpass (hostname, mac) VALUES "
-	values := []interface{}{} // I have no clue why there 2x {}....
-	var mac string
-	var host string
-	// Iterating
 	for _, endpoint := range ApiResponse.Endpoints {
-		mac = endpoint.MacAddress
-		host = " "
+		// just care about hostnames -> no nil
 		if endpoint.EndpointProfile.Hostname != nil {
+			mac = endpoint.MacAddress
 			host = *endpoint.EndpointProfile.Hostname
+			placeholders += "(?, ?),"
+			values = append(values, host, mac)
 		}
-		//query += fmt.Sprintf("(%s, %s), ", host, mac)
-		query += "(?, ?),"
-		values = append(values, host, mac)
 	}
-	query = query[:len(query)-1] // delete the last comma
-	//query += ";"
-
-	fmt.Println(query)
+	placeholders = placeholders[:len(placeholders)-1] // delete the last comma
+	query := "INSERT INTO clearpass (hostname, mac) VALUES " + placeholders + ";"
 
 	// Inserting into database
-	_, err = conn.Exec(query, values...)
+	_, err = dbConn.Exec(query, values...)
 	if err != nil {
 		log.Fatal("problems with query ", err)
 	}
-
-	//// Print the response body
-	//fmt.Println("Response:", string(body))
-	// write the whole body at once
-
-	//// Writing the xml to file
-	//err = ioutil.WriteFile("output.txt", body, 0644)
-	//if err != nil {
-	//	panic(err)
-	//}
-
 }
 
 func setupRequest() *http.Request {
@@ -312,6 +312,7 @@ func setupRequest() *http.Request {
 	request.Header.Set("Authorization", "Basic "+encodedAuthString)
 	return request
 }
+
 func sendRequest(request *http.Request) []byte {
 	client := &http.Client{}
 	response, err := client.Do(request)
@@ -376,7 +377,7 @@ func readCredFromFile(forConnector string, path string) (string, string) {
 }
 
 // Return all rows from a database query
-func getQuery(conn *sql.DB, query string) [][]string {
+func getAllColumns(conn *sql.DB, query string) [][]string {
 	rows, err := conn.Query(query)
 	if err != nil {
 		log.Fatal("problems with query", err)
@@ -406,4 +407,19 @@ func getQuery(conn *sql.DB, query string) [][]string {
 		allRows = append(allRows, singleRow)
 	}
 	return allRows
+}
+
+func readXmlFromFile() []byte {
+	//Read XML content from file
+	xmlFile, err := os.Open("./formated-output.xml")
+	if err != nil {
+		log.Fatalf("Error opening XML file: %v \n", err)
+	}
+	defer xmlFile.Close()
+
+	body, err := ioutil.ReadAll(xmlFile) // need to find an alternative... cuz this deprecated
+	if err != nil {
+		log.Fatalf("Error reading XML file: %v \n", err)
+	}
+	return body
 }
