@@ -1,4 +1,4 @@
-module topo-tool
+module web
 
 go 1.20
 

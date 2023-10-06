@@ -154,7 +154,7 @@ func queryAccessSwitches(sw SwitchInfo) {
 		err := conn.Close()
 		if err != nil {
 			//log.Fatalf("Error closing connection: %v", err)
-			fmt.Printf("Got little error, closing the connection: %v \n", err) // this error occures frequently but I don't know why... ??!? :(
+			fmt.Printf("Got little error, closing the connection: %v \n", err.Error()) // this error occures frequently but I don't know why... ??!? :(
 		}
 	}(sshConn)
 
