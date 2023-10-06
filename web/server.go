@@ -107,7 +107,7 @@ func dbConnect() *sql.DB {
 	var port = "3306"
 	var dbName = "topology-tool"
 	var source = user + ":" + password + "@tcp(" + host + ":" + port + ")/" + dbName
-	timeout := 30 * time.Second
+	timeout := 120 * time.Second
 	startTime := time.Now()
 	conn, err := sql.Open("mysql", source)
 	if err != nil {
