@@ -1,9 +1,8 @@
-F
-OM golang:1.20
+FROM golang:1.20
 LABEL authors="hmaier@ipb-halle.de"
 WORKDIR /app
 COPY . .
 
 RUN go mod download github.com/go-sql-driver/mysql
-RUN go build -o main.go
-CMD ["go", "run", "main.go"]
+RUN go build -o scraper.go
+CMD ["./scraper.go"]

@@ -236,4 +236,5 @@ CREATE TABLE IF NOT EXISTS `sw_a-nord` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='192.168.132.125';
 
 -- giving rights to www-data
-# GRANT delete, insert, select, update, drop ON `topology-tool`.* TO 'www-data'@'localhost';
+CREATE USER 'www-data'@'localhost';
+GRANT delete, insert, select, update, drop ON `topology-tool`.* TO 'www-data'@'localhost';

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"database/sql" // you need to use a driver with this
 	"encoding/base64"
 	json2 "encoding/json"
@@ -73,7 +74,7 @@ type Endpoint struct {
 }
 
 var dbConn *sql.DB
-var host = "localhost"
+var host = "db"
 
 //var host = "db"
 
@@ -330,7 +331,11 @@ func setupRequest() *http.Request {
 }
 
 func sendRequest(request *http.Request) []byte {
-	client := &http.Client{}
+	// don't do TLS validation, because the docker-container does not have certificates
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatalf("Error: %v\n", err)

@@ -7,35 +7,29 @@ From this comparison, we can allocate which **switch-port** belongs to which **h
 ## Running without docker
 Before running this tool you need several setup/in-mind:
 
-- network-connection to comware-switches and to a clearpass
+- network-connection to comware-switches and to clearpass
 
 - username + password for the switches and the clearpass (create an api-reader)
 
-- `data/cred.py` containing the credentials
+- `data/cred.txt` containing the credentials
 
-```` python
-db_user = ""
-db_password = ""
-api_user = ""
-api_password = ""
-sw_user = ""
-sw_password = ""
+```` txt
+api_user=<user>
+api_password=<password>
+
+sw_user=<user>
+sw_password=<password>
 ````
 
-- a mysql/mariadb-Database called `topology-tool` (schema will get generated from python)
+- a mysql/mariadb-Database called `topology-tool` 
 - latest htmx-library in `web/js/htmx.min.js`
 
   - Linux: `wget https://unpkg.com/htmx.org@1.9.4/dist/htmx.min.js > web/js/htmx.min.js  `
   - Windows: `(wget https://unpkg.com/htmx.org@1.9.4/dist/htmx.min.js).Content | Out-File -Path web/js/htmx.min.js  `
 
-
-
-## Usage
-By now there a two use-case implemented.
-### CLI
-You can run the `data/main.py` with the following options.
-- `--scanner`: connect to the Clearpass-API, to pull information about all discovered endpoints, and to the network-switches, to get all mac-addresses in the network
-- `--search <hostname>`: search through the database to get all collected information about a device
+### Data-Scrapper
+Make sure the 
 
 ### Web-Interface
-You can run the `web/server.go` to get a web-interface for searching through the database. Remember that you first have to run `data/main.py --scanner` to populate the database
+You can run the `web/server.go` to get a web-interface for searching through the database. 
+The address is `localhost:8181/topotool`.
