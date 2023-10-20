@@ -4,8 +4,8 @@ and compares them with those saved on a **Aruba-Clearpass** (**N**etwork**A**cce
 
 From this comparison, the program can allocate which **switch-port** belongs to which **hostname**.
 
-I wrote this tool, because I was instructed to inventory the location all computers at work. Even though I could not figure out the exact room, but I could get the house in which the device is standing. 
-This is a huge time save for me. 
+I wrote this tool, because I was instructed to inventory the location all computers at work. Even though I could not figure out the exact room, with this tool I could get the house in which the device is standing. 
+This was a huge time save for me. 
 
 ## Running without docker
 Before running this tool you need several setup/in-mind:
