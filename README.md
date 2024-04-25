@@ -17,9 +17,11 @@ Before running this tool you need several setup/in-mind:
 - `data/cred.txt` containing the credentials, which looks like the following.
 
 ```` txt
+## Clearpass API-User
 api_user=<user>
 api_password=<password>
 
+## User for Comware-Switches
 sw_user=<user>
 sw_password=<password>
 ````
